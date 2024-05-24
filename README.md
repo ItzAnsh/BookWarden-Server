@@ -4,7 +4,7 @@
 
 ### Requirements:
 
-Node.js, nvm, nodemon
+Node Package Manager(npm), Node.js, nvm, nodemon
 
 #### Install the Dependencies
 
