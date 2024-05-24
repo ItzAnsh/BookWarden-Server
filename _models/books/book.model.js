@@ -30,6 +30,21 @@ const bookSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    releasDate : {
+        type: Date,
+    },
+    publisher: {
+        type: String,
+        required: true
+    },
+    language: {
+        type: String,
+        required: true
+    },
+    length: {
+        type: Number,
+        required: true
+    },
     imageUrl: {
         type: String,
         required: true
