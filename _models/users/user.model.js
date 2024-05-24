@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    role: {
+        type: String,
+        default: "",
+        enum: [process.env.ADMIN_KEY, process.env.LIBRAARIAN_KEY, ""]
     }
 })
 

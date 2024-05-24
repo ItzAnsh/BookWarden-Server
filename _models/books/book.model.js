@@ -17,10 +17,11 @@ const bookSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    genre : {
-        type: String,
+    genre: {
+        type : mongoose.Schema.Types.ObjectId,
+        ref: "genres",
         required: true
-    },
+    }, 
     totalQuantity: {
         type: Number,
         required: true
