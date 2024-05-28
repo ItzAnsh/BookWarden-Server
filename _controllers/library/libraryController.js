@@ -16,12 +16,12 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     librarian: mongoose.Types.ObjectId(librarian),
   });
   await newLibrary.save();
-  res.send("Library Added Successfully");
+  res.json(newLibrary);
 });
 
 const getAllLibraries = AsyncErrorHandler(async (req, res) => {
   const libraries = await Library.find();
-  res.send(libraries);
+  res.json(libraries);
 });
 
 const getLibrary = AsyncErrorHandler(async (req, res) => {
@@ -35,7 +35,7 @@ const getLibrary = AsyncErrorHandler(async (req, res) => {
   if (!library) {
     res.status(400);
   }
-  res.send(library);
+  res.json(library);
 });
 
 const updateLibrary = AsyncErrorHandler(async (req, res) => {
@@ -54,7 +54,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
     res.status(400);
   }
 
-  res.send(updateLibrary);
+  res.json(updateLibrary);
 });
 
 const deleteLibrary = AsyncErrorHandler(async (req, res) => {
@@ -69,7 +69,7 @@ const deleteLibrary = AsyncErrorHandler(async (req, res) => {
   if (!deleteLibrary) {
     res.status(400);
   }
-  res.send(deleteLibrary);
+  res.json(deleteLibrary);
 });
 
 export {
