@@ -3,6 +3,7 @@ import mongoose from "mongoose"
 const transactionSchema = new mongoose.Schema[{
     fineId: {
         type: mongoose.Schema.Types.ObjectId,
+        ref : "Fine",
         required: true
     },
     amount: {
