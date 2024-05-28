@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose"
 
 const librarySchema = new mongoose.Schema({
   name: {
@@ -22,9 +22,14 @@ const librarySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  totalBooks: {
+    type: Number,
+    required: true
   }
+  
 });
 
 const Library = mongoose.model('Library', librarySchema);
 
-module.exports = Library;
+export default Library
