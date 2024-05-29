@@ -29,6 +29,7 @@ const librarySchema = new mongoose.Schema({
 	},
 });
 
-const Library = mongoose.model("Library", librarySchema);
+const Library =
+	mongoose.models["libraries"] || mongoose.model("Library", librarySchema);
 
 export default Library;

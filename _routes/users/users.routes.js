@@ -1,12 +1,13 @@
 import express from "express";
 // Ashi's Functions
 import {
+	createBook,
 	getBookDetails,
 	modifyBookDetails,
 	getBooks,
 	rateBook,
 	issueBookToUser,
-} from "../../_controllers/users/AllBooks";
+} from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
 import {
@@ -16,6 +17,7 @@ import {
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
+import Book from "../../_models/Books/book.model.js";
 
 const router = express.Router();
 
@@ -24,20 +26,20 @@ router.get("/", protect, getUser);
 router.post("/login", loginUser);
 router.post("/updatePassword", protect, updatePassword);
 
-// Ashi's Routes
+//Ashi's Routes
 //Get details of single book
-router.get("/bookDetails/:id", getBookDetails);
+router.get("/bookDetails/:id", getBookDetails); //done
 
 //Update book details
-router.get("/modifyBookDetails/:id", modifyBookDetails);
+router.post("/modifyBookDetails/:id", modifyBookDetails); //done
 
 //Get all books
-router.get("/getBooks", getBooks);
+router.get("/getBooks", getBooks); //done
 
 //Rating of single book
-router.get("/rateBook", rateBook);
+router.post("/rateBook/:id", rateBook); //p
 
 //Issue book to user
-router.get("/issueBook/:id", issueBookToUser);
+router.post("/issueBook/:id", issueBookToUser); //done
 
 export default router;
