@@ -1,19 +1,32 @@
 import express from "express";
+// Ashi's Functions
 import {
 	createBook,
 	getBookDetails,
 	modifyBookDetails,
 	getBooks,
 	rateBook,
-	issueBookToUser
-} from "../../_controllers/users/AllBooks.js" 
+	issueBookToUser,
+} from "../../_controllers/users/AllBooks.js";
+
+// Ashu's Functions
+import {
+	getUser,
+	loginUser,
+	updatePassword,
+} from "../../_controllers/users/userController.js";
+
+import { protect } from "../../middlewares/authMiddleware.js";
 import Book from "../../_models/Books/book.model.js";
 
 const router = express.Router();
 
-//Create book
-router.post("/createBook", createBook); //done
+//Ashu's Routes
+router.get("/", protect, getUser);
+router.post("/login", loginUser);
+router.post("/updatePassword", protect, updatePassword);
 
+//Ashi's Routes
 //Get details of single book
 router.get("/bookDetails/:id", getBookDetails); //done
 
