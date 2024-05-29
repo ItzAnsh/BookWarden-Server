@@ -1,27 +1,32 @@
 import express from "express";
 import {
+	createBook,
 	getBookDetails,
 	modifyBookDetails,
 	getBooks,
 	rateBook,
 	issueBookToUser
-} from "../../_controllers/users/AllBooks" 
+} from "../../_controllers/users/AllBooks.js" 
+import Book from "../../_models/Books/book.model.js";
 
 const router = express.Router();
 
+//Create book
+router.post("/createBook", createBook); //done
+
 //Get details of single book
-router.get("/bookDetails/:id", getBookDetails);
+router.get("/bookDetails/:id", getBookDetails); //done
 
 //Update book details
-router.get("/modifyBookDetails/:id", modifyBookDetails);
+router.post("/modifyBookDetails/:id", modifyBookDetails); //done
 
 //Get all books
-router.get("/getBooks", getBooks);
+router.get("/getBooks", getBooks); //done
 
 //Rating of single book
-router.get("/rateBook", rateBook);
+router.post("/rateBook/:id", rateBook); //p
 
 //Issue book to user
-router.get("/issueBook/:id", issueBookToUser);
+router.post("/issueBook/:id", issueBookToUser); //done
 
 export default router;

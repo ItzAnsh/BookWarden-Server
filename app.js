@@ -15,8 +15,8 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use("/users", userRouter);
-app.use("/admin", adminRouter);
+app.use("/api/users", userRouter);
+app.use("/api/admin", adminRouter);
 
 // Start Server
 app.listen(3000, connectDB(), async () => {

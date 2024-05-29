@@ -1,21 +1,72 @@
 import mongoose from 'mongoose'
-import User from "../../_models/users/user.model";
-import Book from "../../_models/Books/book.model";
-import Issue from "../../_models/Issue/issue.model";
-import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler";
+import User from "../../_models/users/user.model.js";
+import Book from "../../_models/Books/book.model.js";
+import Issue from "../../_models/Issue/issue.model.js";
+import Rating from '../../_models/Rating/ratings.model.js';
+import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
+
+
+//Create book
+const createBook = AsyncErrorHandler(async (req, res) => {
+    const { 
+        title, 
+        author, 
+        description, 
+        price, 
+        genre, 
+        totalQuantity, 
+        availableQuantity, 
+        releasDate, 
+        publisher, 
+        language, 
+        length, 
+        imageUrl 
+    } = req.body;
+
+    // if (!title || !author || !description || !price || !genre || !totalQuantity || !availableQuantity || !releasDate || !publisher || !language || !length || !imageUrl) {
+    //     res.status(400).send("Please enter all the book details!");
+    //     return;
+    // }
+
+    // Create a new book instance
+    const newBook = new Book({
+        title,
+        author,
+        description,
+        price,
+        genre,
+        totalQuantity,
+        availableQuantity,
+        releasDate,
+        publisher,
+        language,
+        length,
+        imageUrl
+    });
+
+    // Save the new book to the database
+    const savedBook = await newBook.save();
+
+    if (!savedBook) {
+        return Promise.reject("An error is occurring while creating book");
+    }
+
+    res.status(201).json(savedBook);
+});
+
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req,res)=>{
     const {bookId} = req.params;
 
     if(!bookId){
-        res.status(400);
+        res.status(400).send("Book id not found!");
         return;
     }
     const bookDetails = await bookDetails.findById(bookId);
 
 	if (!bookDetails) {
-		res.status(404);
+		res.status(404).send("User id not found!");
 		return;
 	}
     res.json(bookDetails);
@@ -24,14 +75,15 @@ const getBookDetails = AsyncErrorHandler(async (req,res)=>{
 
 //Update book details
 const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
-	const { bookId, newDetails } = req.body;
+    const {id: bookId} = req.params;
+	const newDetails = req.body;
 
 	if (!bookId || !newDetails) {
 		res.status(400);
 		return;
 	}
 
-    const updateBookDetails = await BookDetails.updateOne({_id: new mongoose.Types.ObjectId(bookId)}, {
+    const updateBookDetails = await Book.updateOne({_id: new mongoose.Types.ObjectId(bookId)}, {
         $set: newDetails
     })
 
@@ -41,6 +93,7 @@ const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
 	}
 	res.json(updateBookDetails);
 });
+
 
 //get all books
 const getBooks = AsyncErrorHandler(async (req, res) => {
@@ -56,43 +109,40 @@ const getBooks = AsyncErrorHandler(async (req, res) => {
 
 //Rate book
 const rateBook = AsyncErrorHandler(async (req, res) => {
-    const { bookId, rating } = req.body;
+    const { id: bookId } = req.params;
+    const { userId, rating } = req.body;
 
-    if (!bookId || !rating || rating < 1 || rating > 5) {
-        res.status(400);
+    if (!bookId || !userId || !rating || rating < 1 || rating > 5) {
+        res.status(400).send("Invalid request parameters.");
         return;
     }
 
-    const book = await BookDetails.findById(bookId);
+    const book = await Book.findById(bookId);
     if (!book) {
-        res.status(404);
+        res.status(404).send("Book not found.");
         return;
     }
 
-    // let bookRating = await BookRating.findOne({ book: bookId });
-    let bookRatingArray = await BookRatingArray.findOne({ book: bookId });
-    if (!bookRatingArray) {
-        bookRatingArray = new BookRatingArray({
-            book: bookId,
-            ratings: [{ userId, rating }]
-            // rating: rating,
-            // numOfRatings: 1
-        });
+    const existingRating = await Rating.findOne({ bookId, userId });
+    if (existingRating) {
+        // Update rating
+        existingRating.rating = rating;
+        await existingRating.save();
     } else {
-        bookRatingArray.ratings.push({ userId, rating });
-        // bookRating.rating = ((bookRating.rating * bookRating.numOfRatings) + rating) / (bookRating.numOfRatings + 1);
-        // bookRating.numOfRatings += 1;
+        
+        const newRating = new Rating({ bookId, userId, rating });
+        await newRating.save();
     }
 
-    await bookRating.save();
+    // Calculate the average rating for the book
+    const ratings = await Rating.find({ bookId }).select("rating");
+    const totalRatings = ratings.length;
+    const sumOfRatings = ratings.reduce((acc, curr) => acc + curr.rating, 0);
+    const averageRating = totalRatings > 0 ? sumOfRatings / totalRatings : 0;
 
-    //average ratings
-    const ratings = bookRatingArray.ratings.map(item => item.rating);
-    const averageRating = ratings.reduce((acc, curr) => acc + curr, 0) / ratings.length;
-
-    res.json(bookRating);
-    
+    res.json({ averageRating }); 
 });
+
 
 //issue book by ID
 const issueBookToUser = AsyncErrorHandler(async (req, res) => {
@@ -125,6 +175,7 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
 
 
 export {
+    createBook,
     getBookDetails,
     modifyBookDetails,
     getBooks,
