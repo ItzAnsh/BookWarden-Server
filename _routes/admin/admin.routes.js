@@ -1,7 +1,7 @@
 import express from "express";
 
 // Controller actions
-import { modifyUser, getAllUsers, createLibrary, createLibrarian } from "../../_controllers/admin/admin.js";
+import { modifyUser, getAllUsers, createLibrary, createLibrarian, createMultipleLibrarians } from "../../_controllers/admin/admin.js";
 
 // Router Setup
 const router = express.Router();
@@ -14,5 +14,6 @@ router.post("/modifyUser", modifyUser);
 router.get("/getAllUsers", getAllUsers);
 router.post("/createLibrary", createLibrary);
 router.post("/createLibrarian", createLibrarian);
+router.post("/createMultipleLibrarians", createMultipleLibrarians);
 
 export default router;
