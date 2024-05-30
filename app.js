@@ -21,6 +21,10 @@ app.use("/api/users", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/librarian", librarianRouter);
 
+app.get("/", (req, res) => {
+	res.send("API is working fine :)");
+});
+
 // Start Server
 app.listen(3000, connectDB(), async () => {
 	console.log("Server is running on port 3000");
