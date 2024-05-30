@@ -36,6 +36,6 @@ const issueSchema = new mongoose.Schema({
 	},
 });
 
-const Issue = mongoose.models["issues"] || mongoose.model("Issue", issueSchema);
+const Issue = mongoose.models["issues"] || mongoose.model("issues", issueSchema);
 
 export default Issue;

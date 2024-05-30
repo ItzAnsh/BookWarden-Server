@@ -20,7 +20,7 @@ const librarySchema = new mongoose.Schema({
 	},
 	librarian: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "User",
+		ref: "users",
 	},
 	totalBooks: {
 		type: Number,
@@ -34,6 +34,6 @@ const librarySchema = new mongoose.Schema({
 });
 
 const Library =
-	mongoose.models["libraries"] || mongoose.model("Library", librarySchema);
+	mongoose.models["libraries"] || mongoose.model("libraries", librarySchema);
 
 export default Library;
