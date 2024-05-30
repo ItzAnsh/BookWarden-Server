@@ -1,18 +1,27 @@
+// Dependencies
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./middlewares/connectDB.js";
+
+// Import Routes
+import userRouter from "./_routes/users/users.routes.js";
+import adminRouter from "./_routes/admin/admin.routes.js";
+import librarianRouter from "./_routes/librarian/librarian.routes.js";
+
 dotenv.config();
 
+// Initialize Express
 const app = express();
-
 app.use(express.json());
-
 app.use(cors());
 
-// Connect to MongoDB
+// Routes
+app.use("/api/users", userRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/librarian", librarianRouter);
 
-app.listen(3002, connectDB(), async () => {
-	console.log("Server is running on port 3002");
+// Start Server
+app.listen(3000, connectDB(), async () => {
+	console.log("Server is running on port 3000");
 });
