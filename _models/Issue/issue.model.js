@@ -1,14 +1,16 @@
 import mongoose from "mongoose";
 
 const issueSchema = new mongoose.Schema({
-	bookId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "Book",
-		required: true,
-	},
+	books : [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "books",
+			required: true,
+		},
+	],
 	userId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "User",
+		ref: "users",
 		required: true,
 	},
 	date: {
@@ -22,7 +24,7 @@ const issueSchema = new mongoose.Schema({
 	},
 	status: {
 		type: String,
-		enum: ["requested", "issued", "returned", "fined", "fining"],
+		enum: ["rejected", "requested", "issued", "returned", "fined", "fining"],
 		default: "requested",
 		required: true,
 	},
