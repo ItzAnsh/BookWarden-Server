@@ -7,50 +7,48 @@ import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 
 //Create book
 const createBook = AsyncErrorHandler(async (req, res) => {
-  const {
-    title,
-    author,
-    description,
-    price,
-    genre,
-    totalQuantity,
-    availableQuantity,
-    releasDate,
-    publisher,
-    language,
-    length,
-    imageUrl,
-  } = req.body;
+    const { 
+        title, 
+        author, 
+        description, 
+        price, 
+        genre, 
+        totalQuantity, 
+        availableQuantity, 
+        releasDate, 
+        publisher, 
+        language, 
+        length, 
+        imageUrl 
+    } = req.body;
 
-  // if (!title || !author || !description || !price || !genre || !totalQuantity || !availableQuantity || !releasDate || !publisher || !language || !length || !imageUrl) {
-  //     res.status(400).send("Please enter all the book details!");
-  //     return;
-  // }
+    // if (!title || !author || !description || !price || !genre || !totalQuantity || !availableQuantity || !releasDate || !publisher || !language || !length || !imageUrl) {
+    //     res.status(400).send("Please enter all the book details!");
+    //     return;
+    // }
 
-  // Create a new book instance
-  const newBook = new Book({
-    title,
-    author,
-    description,
-    price,
-    genre,
-    totalQuantity,
-    availableQuantity,
-    releasDate,
-    publisher,
-    language,
-    length,
-    imageUrl,
-  });
+    const newBook = new Book({
+        title,
+        author,
+        description,
+        price,
+        genre,
+        totalQuantity,
+        availableQuantity,
+        releasDate,
+        publisher,
+        language,
+        length,
+        imageUrl
+    });
 
-  // Save the new book to the database
-  const savedBook = await newBook.save();
+    const savedBook = await newBook.save();
 
-  if (!savedBook) {
-    return Promise.reject("An error is occurring while creating book");
-  }
+    if (!savedBook) {
+        return Promise.reject("An error is occurring while creating book");
+    }
 
-  res.status(201).json(savedBook);
+    res.status(201).json(savedBook);
 });
 
 //Book details

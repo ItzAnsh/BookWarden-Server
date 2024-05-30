@@ -5,6 +5,7 @@ import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 import generateStrongPassword from "../../lib/generatePassword.js";
 import {sendWelcomeEmail, sendIssueStatusEmail} from "../../lib/nodemailer.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import Issue from "../../_models/Issue/issue.model.js";
 import Library from "../../_models/Library/library.model.js";
 import Location from "../../_models/locations/locations.model.js";
@@ -20,7 +21,7 @@ const getBook = AsyncErrorHandler(async (req, res) => {
     res.status(400);
   }
 
-  const book = await Book.findById({ _id: mongoose.Types.ObjectId(bookId) });
+  const book = await Book.findOne({_id: new mongoose.Types.ObjectId(bookId) });
   if (!book) {
     res.status(400);
   }
@@ -101,7 +102,7 @@ const addBookToLibrary = AsyncErrorHandler(async (req, res) => {
 const updateBook = AsyncErrorHandler(async (req, res) => {
   const { bookId } = req.params;
   if (!bookId) {
-    res.status(400);
+    res.status(400).send("Book id not found!");
   }
   const {
     title,
@@ -118,8 +119,8 @@ const updateBook = AsyncErrorHandler(async (req, res) => {
     imageURL,
   } = req.body;
 
-  const updateBook = await Book.findByIdAndUpdate(
-    { _id: mongoose.Types.ObjectId(bookId) },
+  const updateBook = await Book.findOneAndUpdate(
+    { _id: new mongoose.Types.ObjectId(bookId) },
     {
       title,
       author,
@@ -149,8 +150,8 @@ const deleteBook = AsyncErrorHandler(async (req, res) => {
     res.status(400);
   }
 
-  const deleteBook = await Book.findByIdAndDelete({
-    _id: mongoose.Types.ObjectId(bookId),
+  const deleteBook = await Book.findOneAndDelete({
+    _id: new mongoose.Types.ObjectId(bookId),
   });
   if (!deleteBook) {
     res.status(400);
@@ -170,7 +171,7 @@ const getSpecificUser = AsyncErrorHandler(async (req, res) => {
     res.status(400);
   }
 
-  const user = await User.findById({ _id: mongoose.Types.ObjectId(userId) });
+  const user = await User.findOne({ _id: new mongoose.Types.ObjectId(userId) });
   if (!user) {
     res.status(400).json({ message: "User not found" });
   }
@@ -286,7 +287,8 @@ const loginLibrarian = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "All fields are required" });
     return;
   }
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: email });
+  console.log(user)
   if (!user) {
     res.status(400).json({ message: "User not found" });
     return;

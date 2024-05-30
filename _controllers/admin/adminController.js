@@ -3,6 +3,8 @@ import Users from "../../_models/users/user.model.js";
 import Library from "../../_models/Library/library.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 import generateStrongPassword from "../../lib/generatePassword.js";
+import User from "../../_models/users/user.model.js";
+import Library from "../../_models/Library/library.model.js"
 import {sendWelcomeEmail} from "../../lib/nodemailer.js";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
