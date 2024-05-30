@@ -20,6 +20,6 @@ const ratingSchema = new mongoose.Schema({
 });
 
 const Rating =
-	mongoose.models["ratings"] || mongoose.model("Rating", ratingSchema);
+	mongoose.models["ratings"] || mongoose.model("ratings", ratingSchema);
 
 export default Rating;

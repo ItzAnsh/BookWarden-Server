@@ -3,6 +3,7 @@ import User from "../../_models/users/user.model.js";
 import Book from "../../_models/books/book.model.js";
 import Issue from "../../_models/Issue/issue.model.js";
 import Rating from "../../_models/Rating/ratings.model.js";
+import Location from "../../_models/locations/locations.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 
 //Create book
@@ -198,6 +199,33 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
   res.json({ issue, message: "Book Issue request sent to the librarian issued" });
 });
 
+const checkAvailability = AsyncErrorHandler(async (req, res) => {
+  const { bookId } = req.body;
+
+  if (!bookId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const locations = await Location.find({ bookId: bookId }).populate("libraryId").populate("bookId");
+  if (!locations || locations.length === 0) {
+    res.status(404).json({ message: "Book not found" });
+    return;
+  }
+
+const availableLocations = [];
+
+  for (const location of locations) {
+    availableLocations.push({
+      libraryId: location.libraryId,
+      totalQuantity: location.totalQuantity,
+      availableQuantity: location.availableQuantity,
+    })
+  }
+
+  res.json({ availableLocations });
+});
+
 export {
   createBook,
   getBookDetails,
@@ -205,4 +233,5 @@ export {
   getBooks,
   rateBook,
   issueBookToUser,
+  checkAvailability,
 };
