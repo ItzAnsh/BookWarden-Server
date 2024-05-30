@@ -28,7 +28,6 @@ const createBook = AsyncErrorHandler(async (req, res) => {
     //     return;
     // }
 
-    // Create a new book instance
     const newBook = new Book({
         title,
         author,
@@ -44,7 +43,6 @@ const createBook = AsyncErrorHandler(async (req, res) => {
         imageUrl
     });
 
-    // Save the new book to the database
     const savedBook = await newBook.save();
 
     if (!savedBook) {
