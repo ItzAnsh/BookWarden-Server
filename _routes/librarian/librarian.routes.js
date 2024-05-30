@@ -4,13 +4,19 @@ import {
   getAllBooks,
   getBook,
   createBook,
+  addBookToLibrary,
   updateBook,
   deleteBook,
   getAllUsers,
+  getAllIssues,
+  approveIssue,
+  rejectIssue,
   getSpecificUser,
   createGenre,
   createUser,
+  createMultipleUser,
   loginLibrarian,
+
 } from "../../_controllers/librarian/librarianController.js";
 
 import { librarianProtect } from "../../middlewares/authMiddleware.js";
@@ -22,16 +28,21 @@ router.get("/", (req, res) => {
   res.send("Test API Works Fine");
 });
 
-router.get("/getAllBooks", librarianProtect, getAllBooks); //done
-router.get("/getBook/:bookId",librarianProtect, getBook); //done
-router.post("/createBook",librarianProtect, createBook); //done
-router.patch("/updateBook/:bookId",librarianProtect, updateBook); //done
-router.delete("/deleteBook/:bookId",librarianProtect, deleteBook); 
-router.get("/getAllUsers",librarianProtect, getAllUsers); //done
-router.get("/getSpecificUser/:userId",librarianProtect, getSpecificUser); //done
-router.post("/createGenre",librarianProtect, createGenre); //done
-router.post("/createUser",librarianProtect, createUser); //done
-router.post("/loginLibrarian", loginLibrarian); //done
+router.get("/getAllBooks", librarianProtect, getAllBooks);
+router.get("/getBook/:bookId",librarianProtect, getBook);
+router.post("/createBook",librarianProtect, createBook);
+router.post("/addBookToLibrary",librarianProtect, addBookToLibrary);
+router.patch("/updateBook/:bookId",librarianProtect, updateBook);
+router.delete("/deleteBook/:bookId",librarianProtect, deleteBook);
+router.get("/getAllUsers",librarianProtect, getAllUsers);
+router.get("/getSpecificUser/:userId",librarianProtect, getSpecificUser);
+router.get("/getAllIssues",librarianProtect, getAllIssues);
+router.patch("/approveIssue",librarianProtect, approveIssue);
+router.patch("/rejectIssue",librarianProtect, rejectIssue);
+router.post("/createGenre",librarianProtect, createGenre);
+router.post("/createUser",librarianProtect, createUser);
+router.post("/createMultipleUser",librarianProtect, createMultipleUser);
+router.post("/loginLibrarian", loginLibrarian);
 
 export default router;
 

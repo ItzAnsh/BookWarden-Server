@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
 		default: "",
 		enum: [process.env.ADMIN_KEY, process.env.LIBRAARIAN_KEY, ""],
 	},
+    adminId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+    }
 });
 
 userSchema.pre("save", async function (next) {

@@ -1,7 +1,8 @@
 import User from "../../_models/users/user.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import mongoose from "mongoose";
+import Issue from "../../_models/Issue/issue.model.js";
 
 const getUser = AsyncErrorHandler(async (req, res) => {
   const id = req.user;
@@ -40,7 +41,7 @@ const updatePassword = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "All fields are required" });
   }
 
-  const user = await User.findById({_id : id});
+  const user = await User.findById({ _id: id });
 
   if (!user) {
     res.status(400).json({ message: "User not found" });
@@ -55,4 +56,19 @@ const updatePassword = AsyncErrorHandler(async (req, res) => {
   res.json({ message: "Password updated successfully" });
 });
 
-export { getUser, loginUser, updatePassword };
+const getUserIssues = AsyncErrorHandler(async (req, res) => {
+  const id = req.user;
+
+  const user = await User.findById(id);
+  if (!user) {
+    res.status(400).json({ message: "User not found" });
+  }
+
+  const issuedBooks = await Issue.find({ userId: id }).populate("books");
+  if (!issuedBooks) {
+    res.status(400).json({ message: "Issue not found" });
+  }
+  res.json(issuedBooks);
+});
+
+export { getUser, loginUser, updatePassword, getUserIssues };

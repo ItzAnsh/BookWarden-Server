@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
 import Users from "../../_models/users/user.model.js";
+import Library from "../../_models/Library/library.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 import generateStrongPassword from "../../lib/generatePassword.js";
-import sendWelcomeEmail from "../../lib/nodemailer.js";
 import User from "../../_models/users/user.model.js";
 import Library from "../../_models/Library/library.model.js"
+import {sendWelcomeEmail} from "../../lib/nodemailer.js";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -59,6 +60,8 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     location,
     contactNo,
     contactEmail,
+    totalBooks: 0,
+    adminId : req.user
   });
   await newLibrary.save();
   res.json(newLibrary);
@@ -72,7 +75,10 @@ const createLibrarian = AsyncErrorHandler(async (req, res) => {
       message: "All fields are required",
     });
   }
-
+  const existingUser = await Users.findOne({ email });
+  if (existingUser) {
+    res.status(400).json({ message: "Librarian already exists" });
+  }
   const password = generateStrongPassword();
 
   const newLibrarian = new Users({
@@ -80,6 +86,7 @@ const createLibrarian = AsyncErrorHandler(async (req, res) => {
     email,
     password,
     role: process.env.LIBRARIAN_KEY,
+    adminId: req.user,
   });
   await newLibrarian.save();
   sendWelcomeEmail(email, password, name);
