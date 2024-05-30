@@ -17,7 +17,7 @@ import {
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
-import Book from "../../_models/Books/book.model.js";
+import Book from "../../_models/books/book.model.js";
 
 const router = express.Router();
 
