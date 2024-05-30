@@ -5,6 +5,7 @@ import {
 	getBooks,
 	rateBook,
 	issueBookToUser,
+	checkAvailability,
 } from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
@@ -24,6 +25,7 @@ router.get("/", protect, getUser);
 router.post("/login", loginUser);
 router.post("/updatePassword", protect, updatePassword);
 router.get("/getUserIssues", protect, getUserIssues);
+router.post("/checkAvailability", protect, checkAvailability);
 
 //Ashi's Routes
 //Get details of single book
