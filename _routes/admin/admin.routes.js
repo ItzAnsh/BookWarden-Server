@@ -11,13 +11,15 @@ router.get("/", (req, res) => {
 	res.send("Test API Works Fine");
 });
 
-router.post("/modifyUser", adminProtect, modifyUser);
-router.get("/getAllUsers",adminProtect, getAllUsers);
+router.post("/modifyUser", adminProtect, modifyUser); 
+router.get("/getAllUsers",adminProtect, getAllUsers); //done
 router.post("/createLibrary",adminProtect, createLibrary);
-router.post("/createLibrarian",adminProtect, createLibrarian);
+router.post("/createLibrarian",adminProtect, createLibrarian);//done
 router.post("/createMultipleLibrarians",adminProtect, createMultipleLibrarians);
-router.post("/loginAdmin", loginAdmin);
-router.post("/registerAdmin", registerAdmin);
+router.post("/loginAdmin", loginAdmin); //done
+router.post("/registerAdmin", registerAdmin);//done
 
 
 export default router;
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NTc2NzFlZjgwMWQ2MWY3YWE0YzQ1OCIsImlhdCI6MTcxNzAwNDE2MiwiZXhwIjoxNzE3NjA4OTYyfQ.ldYqf2lNmF0eSHvlBR6PD_VpORWlCr8kn4IFn0tBuwI
