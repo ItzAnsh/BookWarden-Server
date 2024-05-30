@@ -21,12 +21,16 @@ const librarySchema = new mongoose.Schema({
 	librarian: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User",
-		required: true,
 	},
 	totalBooks: {
 		type: Number,
 		required: true,
 	},
+  adminId : {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    required: true,
+  }
 });
 
 const Library =
