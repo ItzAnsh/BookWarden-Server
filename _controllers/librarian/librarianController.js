@@ -83,6 +83,17 @@ const createBook = AsyncErrorHandler(async (req, res) => {
   res.json(newBook);
 });
 
+const createMultipleBooks = AsyncErrorHandler(async (req, res) => {
+  const books = req.body;
+  if (!books || !Array.isArray(books)) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const createdBooks = await Book.insertMany(books);
+  res.json(createdBooks);
+});
+
 const addBookToLibrary = AsyncErrorHandler(async (req, res) => {
   const { bookId, libraryId, totalQuantity, availableQuantity } = req.body;
   if (!bookId) {
