@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
 	role: {
 		type: String,
 		default: "",
-		enum: [process.env.ADMIN_KEY, process.env.LIBRAARIAN_KEY, ""],
+		enum: [process.env.ADMIN_KEY, process.env.LIBRARIAN_KEY, ""],
 	},
     adminId: {
         type: mongoose.Schema.Types.ObjectId,
