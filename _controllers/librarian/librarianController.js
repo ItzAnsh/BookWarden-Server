@@ -71,6 +71,7 @@ console.log("Book Data Found")
     imageURL,
   });
   console.log("Book instance created")
+  console.log(newBook)
   await newBook.save();
   console.log("Book instance saved")
   res.json(newBook);
