@@ -56,6 +56,7 @@ const createBook = AsyncErrorHandler(async (req, res) => {
     !imageURL
   ) {
     res.status(400).json("Please enter all the book details!");
+    return;
   }
 console.log("Book Data Found")
   const newBook = new Book({
