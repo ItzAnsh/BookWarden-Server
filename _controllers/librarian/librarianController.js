@@ -57,7 +57,7 @@ const createBook = AsyncErrorHandler(async (req, res) => {
   ) {
     res.status(400).json("Please enter all the book details!");
   }
-
+console.log("Book Data Found")
   const newBook = new Book({
     title,
     author,
@@ -70,7 +70,9 @@ const createBook = AsyncErrorHandler(async (req, res) => {
     releaseDate,
     imageURL,
   });
+  console.log("Book instance created")
   await newBook.save();
+  console.log("Book instance saved")
   res.json(newBook);
 });
 
