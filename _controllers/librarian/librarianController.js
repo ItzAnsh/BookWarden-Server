@@ -55,7 +55,7 @@ const createBook = AsyncErrorHandler(async (req, res) => {
     !releaseDate ||
     !imageURL
   ) {
-    res.status(400);
+    res.status(400).json("Please enter all the book details!");
   }
 
   const newBook = new Book({
