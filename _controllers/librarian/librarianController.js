@@ -30,6 +30,7 @@ const getBook = AsyncErrorHandler(async (req, res) => {
 });
 
 const createBook = AsyncErrorHandler(async (req, res) => {
+  console.log(req.headers)
   console.log(req.body)
   const {
     title,

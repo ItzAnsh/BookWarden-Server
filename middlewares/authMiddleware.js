@@ -19,12 +19,14 @@ const protect = AsyncErrorHandler(async (req, res, next) => {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
         const user = await User.findById(decoded.id).select("-password");
         if (!user) {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
 
         req.user = user._id;
@@ -50,18 +52,21 @@ const librarianProtect = AsyncErrorHandler(async (req, res, next) => {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
         const user = await User.findById(decoded.id).select("-password");
         if (!user) {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
 
         if (user.role !== process.env.LIBRARIAN_KEY) {
             res.status(401).json({
                 message: "Unauthorized, Only for librarians"
             });
+            return
         }
         req.user = user._id;
         next();
@@ -69,6 +74,7 @@ const librarianProtect = AsyncErrorHandler(async (req, res, next) => {
         res.status(401).json({
             message: "Unauthorized"
         });
+        return
     }
 }) 
 const adminProtect = AsyncErrorHandler(async (req, res, next) => {
@@ -85,18 +91,21 @@ const adminProtect = AsyncErrorHandler(async (req, res, next) => {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
         const user = await User.findById(decoded.id).select("-password");
         if (!user) {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
 
         if (user.role !== process.env.ADMIN_KEY) {
             res.status(401).json({
                 message: "Unauthorized, Only for admins"
             });
+            return
         }
         req.user = user._id;
         next();
@@ -104,6 +113,7 @@ const adminProtect = AsyncErrorHandler(async (req, res, next) => {
         res.status(401).json({
             message: "Unauthorized"
         });
+        return
     }
 }) 
 
@@ -121,18 +131,21 @@ const libraryProtect = AsyncErrorHandler(async (req, res, next) => {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
         const user = await User.findById(decoded.id).select("-password");
         if (!user) {
             res.status(401).json({
                 message: "Unauthorized"
             });
+            return
         }
 
         if (!(user.role == process.env.LIBRARY_KEY || user.role == process.env.ADMIN_KEY)) {
             res.status(401).json({
                 message: "Unauthorized, Only for librarians and admins"
             });
+            return
         }
         req.user = user._id;
         next();
@@ -140,6 +153,7 @@ const libraryProtect = AsyncErrorHandler(async (req, res, next) => {
         res.status(401).json({
             message: "Unauthorized"
         });
+        return
     }
 })
 
