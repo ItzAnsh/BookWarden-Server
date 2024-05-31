@@ -6,51 +6,6 @@ import Rating from "../../_models/Rating/ratings.model.js";
 import Location from "../../_models/locations/locations.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 
-//Create book
-const createBook = AsyncErrorHandler(async (req, res) => {
-    const { 
-        title, 
-        author, 
-        description, 
-        price, 
-        genre, 
-        totalQuantity, 
-        availableQuantity, 
-        releasDate, 
-        publisher, 
-        language, 
-        length, 
-        imageUrl 
-    } = req.body;
-
-    // if (!title || !author || !description || !price || !genre || !totalQuantity || !availableQuantity || !releasDate || !publisher || !language || !length || !imageUrl) {
-    //     res.status(400).send("Please enter all the book details!");
-    //     return;
-    // }
-
-    const newBook = new Book({
-        title,
-        author,
-        description,
-        price,
-        genre,
-        totalQuantity,
-        availableQuantity,
-        releasDate,
-        publisher,
-        language,
-        length,
-        imageUrl
-    });
-
-    const savedBook = await newBook.save();
-
-    if (!savedBook) {
-        return Promise.reject("An error is occurring while creating book");
-    }
-
-    res.status(201).json(savedBook);
-});
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
@@ -96,7 +51,6 @@ const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
 //get all books
 const getBooks = AsyncErrorHandler(async (req, res) => {
   const allBooks = await Book.find();
-
   if (!allBooks || allBooks.length === 0) {
     res.status(404).json({ message: "No books found" });
     return;
