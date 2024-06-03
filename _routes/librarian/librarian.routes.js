@@ -17,6 +17,7 @@ import {
   createUser,
   createMultipleUser,
   loginLibrarian,
+  approveFinePaymentRequest
 
 } from "../../_controllers/librarian/librarianController.js";
 
@@ -45,5 +46,6 @@ router.post("/createGenre",librarianProtect, createGenre);
 router.post("/createUser",librarianProtect, createUser);
 router.post("/createMultipleUser",librarianProtect, createMultipleUser);
 router.post("/loginLibrarian", loginLibrarian);
+router.post("/approveFinePaymentRequest", librarianProtect, approveFinePaymentRequest);
 
 export default router;
