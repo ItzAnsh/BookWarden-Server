@@ -23,7 +23,9 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
 
 const getAllLibraries = AsyncErrorHandler(async (req, res) => {
 	const libraries = await Library.find();
-	libraries.id = libraries._id;
+	libraries.forEach((lib, index) => {
+		libraries[index].id = lib._id;
+	});
 	res.json(libraries);
 });
 
