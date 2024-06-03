@@ -46,9 +46,9 @@ const modifyUser = AsyncErrorHandler(async (req, res) => {
 });
 
 const createLibrary = AsyncErrorHandler(async (req, res) => {
-  const { name, location, contactNo, contactEmail } = req.body;
+  const { name, location, contactNo, contactEmail, maxBooks, issuePeriod } = req.body;
 
-  if (!name || !location || !contactNo || !contactEmail) {
+  if (!name || !location || !contactNo || !contactEmail || !maxBooks || !issuePeriod) {
     res.status(400).json({
       message: "All fields are required",
     });
@@ -61,6 +61,8 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     contactEmail,
     totalBooks: 0,
     adminId: req.user,
+    issuePeriod,
+    maxBooks,
   });
   await newLibrary.save();
   res.json(newLibrary);
