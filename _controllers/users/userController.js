@@ -19,20 +19,31 @@ const loginUser = AsyncErrorHandler(async (req, res) => {
 	const { email, password } = req.body;
 	if (!email || !password) {
 		res.status(400).json({ message: "All fields are required" });
+		return;
 	}
-	const user = await User.findOne({ email }, { role: 1 });
+	const user = await User.findOne({ email });
 	if (!user) {
 		res.status(400).json({ message: "User not found" });
+		return;
 	}
 	if (!(await user.matchPassword(password))) {
 		res.status(400).json({ message: "Invalid credentials" });
+		return;
 	}
 
 	const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
 		expiresIn: "7d",
 	});
-	const role = findRole(user.role);
-	res.json({ token, role });
+	// const role = findRole(user.role);
+	// console.log(role);
+
+	const role =
+		user.role === process.env.ADMIN_KEY
+			? "admin"
+			: user.role === process.env.LIBRARIAN_KEY
+			? "librarian"
+			: "user";
+	res.json({ token, role: role });
 });
 
 const updatePassword = AsyncErrorHandler(async (req, res) => {
