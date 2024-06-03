@@ -13,6 +13,11 @@ const issueSchema = new mongoose.Schema({
 		ref: "users",
 		required: true,
 	},
+	libraryId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "libraries",
+		required: true,
+	},
 	date: {
 		type: Date,
 		default: Date.now,

@@ -9,6 +9,7 @@ import {
   deleteBook,
   getAllUsers,
   getAllIssues,
+  getLibraryIssues,
   approveIssue,
   rejectIssue,
   getSpecificUser,
@@ -37,6 +38,7 @@ router.delete("/deleteBook/:bookId",librarianProtect, deleteBook);
 router.get("/getAllUsers",librarianProtect, getAllUsers);
 router.get("/getSpecificUser/:userId",librarianProtect, getSpecificUser);
 router.get("/getAllIssues",librarianProtect, getAllIssues);
+router.get("/getLibraryIssues",librarianProtect, getLibraryIssues);
 router.patch("/approveIssue",librarianProtect, approveIssue);
 router.patch("/rejectIssue",librarianProtect, rejectIssue);
 router.post("/createGenre",librarianProtect, createGenre);
@@ -45,5 +47,3 @@ router.post("/createMultipleUser",librarianProtect, createMultipleUser);
 router.post("/loginLibrarian", loginLibrarian);
 
 export default router;
-
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NTgwNzAwYzUwYzUyMjcxNjE0YzgyMSIsImlhdCI6MTcxNzA0NTA1MCwiZXhwIjoxNzE3NjQ5ODUwfQ._6NJPUqcefeOpLx9rgUst-LhYaeQqSpAs1H9CkFuuBY

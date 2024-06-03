@@ -350,6 +350,35 @@ const getAllIssues = AsyncErrorHandler(async (req, res) => {
   res.json(issues);
 });
 
+const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
+  const librarianId = req.user;
+  if (!librarianId) {
+    res.status(400).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const librarian = await User.findById(librarianId);
+  if (!librarian) {
+    res.status(400).json({ message: "Librarian not found" });
+    return;
+  }
+
+  if (librarian.role !== process.env.LIBRARIAN_KEY) {
+    res.status(400).json({ message: "Not a librarian" });
+    return;
+  }
+
+  const library = await Library.findOne({librarian : librarian._id});
+  if (!library) {
+    res.status(400).json({ message: "Library not found" });
+    return;
+  }
+
+  const issues = await Issue.find({libraryId: library._id}).populate("books").populate("userId");
+  issues.sort((a, b) => b.date - a.date);
+  res.json(issues);
+})
+
 const approveIssue = AsyncErrorHandler(async (req, res) => {
   const { issueId } = req.body;
 
@@ -433,6 +462,8 @@ export {
   deleteBook,
   getAllUsers,
   getAllIssues,
+  getLibraryIssues,
+  getSpecificIssue,
   approveIssue,
   rejectIssue,
   getSpecificUser,
