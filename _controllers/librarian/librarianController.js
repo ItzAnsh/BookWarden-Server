@@ -3,7 +3,10 @@ import User from "../../_models/users/user.model.js";
 import Genre from "../../_models/books/genre.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 import generateStrongPassword from "../../lib/generatePassword.js";
-import {sendWelcomeEmail, sendIssueStatusEmail} from "../../lib/nodemailer.js";
+import {
+  sendWelcomeEmail,
+  sendIssueStatusEmail,
+} from "../../lib/nodemailer.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import Issue from "../../_models/Issue/issue.model.js";
@@ -21,7 +24,7 @@ const getBook = AsyncErrorHandler(async (req, res) => {
     res.status(400);
   }
 
-  const book = await Book.findOne({_id: new mongoose.Types.ObjectId(bookId) });
+  const book = await Book.findOne({ _id: new mongoose.Types.ObjectId(bookId) });
   if (!book) {
     res.status(400);
   }
@@ -30,6 +33,8 @@ const getBook = AsyncErrorHandler(async (req, res) => {
 });
 
 const createBook = AsyncErrorHandler(async (req, res) => {
+  console.log(req.headers);
+  console.log(req.body);
   const {
     title,
     author,
@@ -55,9 +60,10 @@ const createBook = AsyncErrorHandler(async (req, res) => {
     !releaseDate ||
     !imageURL
   ) {
-    res.status(400);
+    res.status(400).json("Please enter all the book details!");
+    return;
   }
-
+  console.log("Book Data Found");
   const newBook = new Book({
     title,
     author,
@@ -70,8 +76,22 @@ const createBook = AsyncErrorHandler(async (req, res) => {
     releaseDate,
     imageURL,
   });
+  console.log("Book instance created");
+  console.log(newBook);
   await newBook.save();
+  console.log("Book instance saved");
   res.json(newBook);
+});
+
+const createMultipleBooks = AsyncErrorHandler(async (req, res) => {
+  const books = req.body;
+  if (!books || !Array.isArray(books)) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const createdBooks = await Book.insertMany(books);
+  res.json(createdBooks);
 });
 
 const addBookToLibrary = AsyncErrorHandler(async (req, res) => {
@@ -249,6 +269,7 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
   }
 
   const createdUsers = [];
+  const emailContent = [];
 
   for (const user of users) {
     const existingUser = await User.findOne({ email });
@@ -266,16 +287,26 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
 
     const password = generateStrongPassword();
 
-    const newUser = new User({
+    createdUsers.push({
       name,
       email,
       password,
       adminId: librarian.adminId,
     });
-    await newUser.save();
-    sendWelcomeEmail(email, password, name);
+
+    emailContent.push({
+      email,
+      password,
+      name,
+    });
+
     createdUsers.push(newUser);
-    console.log("User created successfully:", user.email);
+    emailContent.push({ email, password, name });
+  }
+  await User.insertMany(createdUsers);
+
+  for (const email of emailContent) {
+    sendWelcomeEmail(email.email, email.password, email.name);
   }
 
   res.json({ createdUsers });
@@ -288,7 +319,7 @@ const loginLibrarian = AsyncErrorHandler(async (req, res) => {
     return;
   }
   const user = await User.findOne({ email: email });
-  console.log(user)
+  console.log(user);
   if (!user) {
     res.status(400).json({ message: "User not found" });
     return;
@@ -319,6 +350,35 @@ const getAllIssues = AsyncErrorHandler(async (req, res) => {
   res.json(issues);
 });
 
+const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
+  const librarianId = req.user;
+  if (!librarianId) {
+    res.status(400).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const librarian = await User.findById(librarianId);
+  if (!librarian) {
+    res.status(400).json({ message: "Librarian not found" });
+    return;
+  }
+
+  if (librarian.role !== process.env.LIBRARIAN_KEY) {
+    res.status(400).json({ message: "Not a librarian" });
+    return;
+  }
+
+  const library = await Library.findOne({librarian : librarian._id});
+  if (!library) {
+    res.status(400).json({ message: "Library not found" });
+    return;
+  }
+
+  const issues = await Issue.find({libraryId: library._id}).populate("books").populate("userId");
+  issues.sort((a, b) => b.date - a.date);
+  res.json(issues);
+})
+
 const approveIssue = AsyncErrorHandler(async (req, res) => {
   const { issueId } = req.body;
 
@@ -327,7 +387,9 @@ const approveIssue = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issue = await Issue.findById(issueId).populate("books").populate("userId");
+  const issue = await Issue.findById(issueId)
+    .populate("books")
+    .populate("userId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
@@ -343,7 +405,7 @@ const approveIssue = AsyncErrorHandler(async (req, res) => {
   }
   issue.status = "issued";
   await issue.save();
-  sendIssueStatusEmail(issue.userId.email, issue );
+  sendIssueStatusEmail(issue.userId.email, issue);
   res.json(issue);
 });
 
@@ -400,6 +462,8 @@ export {
   deleteBook,
   getAllUsers,
   getAllIssues,
+  getLibraryIssues,
+  getSpecificIssue,
   approveIssue,
   rejectIssue,
   getSpecificUser,
