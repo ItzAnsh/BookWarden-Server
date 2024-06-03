@@ -6,186 +6,189 @@ import Rating from "../../_models/Rating/ratings.model.js";
 import Location from "../../_models/locations/locations.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 
-
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
-  const { bookId } = req.params;
+	const { bookId } = req.params;
 
-  if (!bookId) {
-    res.status(400).send("Book id not found!");
-    return;
-  }
-  const bookDetails = await bookDetails.findById(bookId);
+	if (!bookId) {
+		res.status(400).send("Book id not found!");
+		return;
+	}
+	const bookDetails = await bookDetails.findById(bookId);
 
-  if (!bookDetails) {
-    res.status(404).send("User id not found!");
-    return;
-  }
-  res.json(bookDetails);
+	if (!bookDetails) {
+		res.status(404).send("User id not found!");
+		return;
+	}
+	res.json(bookDetails);
 });
 
 //Update book details
 const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
-  const { id: bookId } = req.params;
-  const newDetails = req.body;
+	const { id: bookId } = req.params;
+	const newDetails = req.body;
 
-  if (!bookId || !newDetails) {
-    res.status(400);
-    return;
-  }
+	if (!bookId || !newDetails) {
+		res.status(400);
+		return;
+	}
 
-  const updateBookDetails = await Book.updateOne(
-    { _id: new mongoose.Types.ObjectId(bookId) },
-    {
-      $set: newDetails,
-    }
-  );
+	const updateBookDetails = await Book.updateOne(
+		{ _id: new mongoose.Types.ObjectId(bookId) },
+		{
+			$set: newDetails,
+		}
+	);
 
-  if (!updateBookDetails) {
-    res.status(404);
-    return;
-  }
-  res.json(updateBookDetails);
+	if (!updateBookDetails) {
+		res.status(404);
+		return;
+	}
+	res.json(updateBookDetails);
 });
 
 //get all books
 const getBooks = AsyncErrorHandler(async (req, res) => {
-  const allBooks = await Book.find();
-  if (!allBooks || allBooks.length === 0) {
-    res.status(404).json({ message: "No books found" });
-    return;
-  }
-  res.json(allBooks);
+	const allBooks = await Book.find();
+	if (!allBooks || allBooks.length === 0) {
+		res.status(404).json({ message: "No books found" });
+		return;
+	}
+	res.json(allBooks);
 });
 
 //Rate book
 const rateBook = AsyncErrorHandler(async (req, res) => {
-  const { id: bookId } = req.params;
-  const { userId, rating } = req.body;
+	const { id: bookId } = req.params;
+	const { userId, rating } = req.body;
 
-  if (!bookId || !userId || !rating || rating < 1 || rating > 5) {
-    res.status(400).send("Invalid request parameters.");
-    return;
-  }
+	if (!bookId || !userId || !rating || rating < 1 || rating > 5) {
+		res.status(400).send("Invalid request parameters.");
+		return;
+	}
 
-  const book = await Book.findById(bookId);
-  if (!book) {
-    res.status(404).send("Book not found.");
-    return;
-  }
+	const book = await Book.findById(bookId);
+	if (!book) {
+		res.status(404).send("Book not found.");
+		return;
+	}
 
-  const existingRating = await Rating.findOne({ bookId, userId });
-  if (existingRating) {
-    // Update rating
-    existingRating.rating = rating;
-    await existingRating.save();
-  } else {
-    const newRating = new Rating({ bookId, userId, rating });
-    await newRating.save();
-  }
+	const existingRating = await Rating.findOne({ bookId, userId });
+	if (existingRating) {
+		// Update rating
+		existingRating.rating = rating;
+		await existingRating.save();
+	} else {
+		const newRating = new Rating({ bookId, userId, rating });
+		await newRating.save();
+	}
 
-  // Calculate the average rating for the book
-  const ratings = await Rating.find({ bookId }).select("rating");
-  const totalRatings = ratings.length;
-  const sumOfRatings = ratings.reduce((acc, curr) => acc + curr.rating, 0);
-  const averageRating = totalRatings > 0 ? sumOfRatings / totalRatings : 0;
+	// Calculate the average rating for the book
+	const ratings = await Rating.find({ bookId }).select("rating");
+	const totalRatings = ratings.length;
+	const sumOfRatings = ratings.reduce((acc, curr) => acc + curr.rating, 0);
+	const averageRating = totalRatings > 0 ? sumOfRatings / totalRatings : 0;
 
-  res.json({ averageRating });
+	res.json({ averageRating });
 });
 
 //issue book by ID
 const issueBookToUser = AsyncErrorHandler(async (req, res) => {
-  const userId = req.user;
-  const { books, deadline } = req.body;
+	const userId = req.user;
+	const { books, deadline } = req.body;
 
-  if (!userId || !books || !deadline) {
-    res.status(400);
-  }
+	if (!userId || !books || !deadline) {
+		res.status(400);
+	}
 
-  if (books.length === 0) {
-    res.status(400).json({ message: "No books selected" });
-  }
-  if (books.length > 5) {
-    res.status(400).json({ message: "You can only issue 5 books at a time" });
-  }
-  if (deadline < new Date()) {
-    res.status(400).json({ message: "Deadline cannot be in the past" });
-  }
+	if (books.length === 0) {
+		res.status(400).json({ message: "No books selected" });
+	}
+	if (books.length > 5) {
+		res.status(400).json({ message: "You can only issue 5 books at a time" });
+	}
+	if (deadline < new Date()) {
+		res.status(400).json({ message: "Deadline cannot be in the past" });
+	}
 
-  const user = await User.findById(userId);
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
-  }
+	const user = await User.findById(userId);
+	if (!user) {
+		res.status(404).json({ message: "User not found" });
+		return;
+	}
 
-  const booksToBeIssued = [];
+	const booksToBeIssued = [];
 
-  for (const book of books) {
-    const bookId = book;
-    const bookDetails = await Book.findById(bookId);
-    console.log(bookDetails);
-    if (!bookDetails) {
-      continue;
-    }
+	for (const book of books) {
+		const bookId = book;
+		const bookDetails = await Book.findById(bookId);
+		console.log(bookDetails);
+		if (!bookDetails) {
+			continue;
+		}
 
-    if (bookDetails.availableQuantity <= 0) {
-      res.status(400).json({ message: "Book is not available" });
-    }
-    
-    booksToBeIssued.push(bookId);
-  }
+		if (bookDetails.availableQuantity <= 0) {
+			res.status(400).json({ message: "Book is not available" });
+		}
 
-  if (booksToBeIssued.length === 0) {
-    res.status(400).json({ message: "No books selected or found" });
-    return;
-  }
+		booksToBeIssued.push(bookId);
+	}
 
-  const issue = new Issue({
-    books: booksToBeIssued,
-    userId: userId,
-    date: new Date(),
-    deadline: deadline,
-    status: "requested",
-  });
+	if (booksToBeIssued.length === 0) {
+		res.status(400).json({ message: "No books selected or found" });
+		return;
+	}
 
-  await issue.save();
+	const issue = new Issue({
+		books: booksToBeIssued,
+		userId: userId,
+		date: new Date(),
+		deadline: deadline,
+		status: "requested",
+	});
 
-  res.json({ issue, message: "Book Issue request sent to the librarian issued" });
+	await issue.save();
+
+	res.json({
+		issue,
+		message: "Book Issue request sent to the librarian issued",
+	});
 });
 
 const checkAvailability = AsyncErrorHandler(async (req, res) => {
-  const { bookId } = req.body;
+	const { bookId } = req.body;
 
-  if (!bookId) {
-    res.status(400).json({ message: "Invalid input data" });
-    return;
-  }
+	if (!bookId) {
+		res.status(400).json({ message: "Invalid input data" });
+		return;
+	}
 
-  const locations = await Location.find({ bookId: bookId }).populate("libraryId").populate("bookId");
-  if (!locations || locations.length === 0) {
-    res.status(404).json({ message: "Book not found" });
-    return;
-  }
+	const locations = await Location.find({ bookId: bookId })
+		.populate("libraryId")
+		.populate("bookId");
+	if (!locations || locations.length === 0) {
+		res.status(404).json({ message: "Book not found" });
+		return;
+	}
 
-const availableLocations = [];
+	const availableLocations = [];
 
-  for (const location of locations) {
-    availableLocations.push({
-      libraryId: location.libraryId,
-      totalQuantity: location.totalQuantity,
-      availableQuantity: location.availableQuantity,
-    })
-  }
+	for (const location of locations) {
+		availableLocations.push({
+			libraryId: location.libraryId,
+			totalQuantity: location.totalQuantity,
+			availableQuantity: location.availableQuantity,
+		});
+	}
 
-  res.json({ availableLocations });
+	res.json({ availableLocations });
 });
 
 export {
-  createBook,
-  getBookDetails,
-  modifyBookDetails,
-  getBooks,
-  rateBook,
-  issueBookToUser,
-  checkAvailability,
+	getBookDetails,
+	modifyBookDetails,
+	getBooks,
+	rateBook,
+	issueBookToUser,
+	checkAvailability,
 };
