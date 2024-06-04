@@ -51,6 +51,7 @@ const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
 //get all books
 const getBooks = AsyncErrorHandler(async (req, res) => {
 	const allBooks = await Book.find();
+
 	if (!allBooks || allBooks.length === 0) {
 		res.status(404).json({ message: "No books found" });
 		return;
@@ -95,124 +96,131 @@ const rateBook = AsyncErrorHandler(async (req, res) => {
 
 //issue book by ID
 const issueBookToUser = AsyncErrorHandler(async (req, res) => {
-  const userId = req.user;
-  const { books, libraryId } = req.body;
+	const userId = req.user;
+	const { books, libraryId } = req.body;
 
-  if (!userId || !books || !libraryId) {
-    res.status(400).json({ message: "Invalid input data" });
-    return;
-  }
-  if (books.length === 0) {
-    res.status(400).json({ message: "No books selected" });
-    return;
-  }
- 
-  const user = await User.findById(userId);
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
-  }
+	if (!userId || !books || !libraryId) {
+		res.status(400).json({ message: "Invalid input data" });
+		return;
+	}
+	if (books.length === 0) {
+		res.status(400).json({ message: "No books selected" });
+		return;
+	}
 
-  const library = await Library.findById(libraryId);
-  if (!library) {
-    res.status(404).json({ message: "Library not found" });
-    return;
-  }
+	const user = await User.findById(userId);
+	if (!user) {
+		res.status(404).json({ message: "User not found" });
+		return;
+	}
 
-  if (books.length > library.maxBooks) {
-    res.status(400).json({ message: "You can only issue 5 books at a time" });
-    return;
-  }
+	const library = await Library.findById(libraryId);
+	if (!library) {
+		res.status(404).json({ message: "Library not found" });
+		return;
+	}
 
-  const booksToBeIssued = [];
-  const booksNotFoundInDatabase = [];
-  const booksNotFoundInLibrary = [];
-  const booksNotAvailable = [];
+	if (books.length > library.maxBooks) {
+		res.status(400).json({ message: "You can only issue 5 books at a time" });
+		return;
+	}
 
-  for (const bookId of books) {
-    const book = await Book.findById(bookId);
-    if (!book) {
-      booksNotFoundInDatabase.push(bookId);
-      continue;
-    }
-    const location = await Location.findOne({ bookId, libraryId });
+	const booksToBeIssued = [];
+	const booksNotFoundInDatabase = [];
+	const booksNotFoundInLibrary = [];
+	const booksNotAvailable = [];
 
-    if (!location) {
-      booksNotFoundInLibrary.push(book);
-      continue;
-    }
+	for (const bookId of books) {
+		const book = await Book.findById(bookId);
+		if (!book) {
+			booksNotFoundInDatabase.push(bookId);
+			continue;
+		}
+		const location = await Location.findOne({ bookId, libraryId });
 
-    if (location.availableQuantity <= 0) {
-      booksNotAvailable.push(book);
-      continue;
-    }
+		if (!location) {
+			booksNotFoundInLibrary.push(book);
+			continue;
+		}
 
-    booksToBeIssued.push(bookId);
-    console.log("pushed")
-  }
-  console.log("looped")
+		if (location.availableQuantity <= 0) {
+			booksNotAvailable.push(book);
+			continue;
+		}
 
-  if (booksToBeIssued.length === 0) {
-    res.status(400).json({ message: "No books selected or found", booksToBeIssued, booksNotFoundInDatabase, booksNotFoundInLibrary, booksNotAvailable });
-    return;
-  }
+		booksToBeIssued.push(bookId);
+		console.log("pushed");
+	}
+	console.log("looped");
 
-  const issue = new Issue({
-    books: booksToBeIssued,
-    userId: userId,
-    libraryId: libraryId,
-    date: new Date(),
-    deadline: new Date() + library.issuePeriod,
-    status: "requested",
-  });
+	if (booksToBeIssued.length === 0) {
+		res
+			.status(400)
+			.json({
+				message: "No books selected or found",
+				booksToBeIssued,
+				booksNotFoundInDatabase,
+				booksNotFoundInLibrary,
+				booksNotAvailable,
+			});
+		return;
+	}
 
+	const issue = new Issue({
+		books: booksToBeIssued,
+		userId: userId,
+		libraryId: libraryId,
+		date: new Date(),
+		deadline: new Date() + library.issuePeriod,
+		status: "requested",
+	});
 
-  await issue.save();
-  console.log("saved");
-  res.json({
-    issue,
-    message: "Book Issue request sent to the librarian issued",
-    booksToBeIssued,
-    booksNotFoundInDatabase,
-    booksNotFoundInLibrary,
-    booksNotAvailable,
-  });
+	await issue.save();
+	console.log("saved");
+	res.json({
+		issue,
+		message: "Book Issue request sent to the librarian issued",
+		booksToBeIssued,
+		booksNotFoundInDatabase,
+		booksNotFoundInLibrary,
+		booksNotAvailable,
+	});
 });
 
 const checkAvailability = AsyncErrorHandler(async (req, res) => {
-  const { bookId } = req.body;
+	const { bookId } = req.body;
 
-  if (!bookId) {
-    res.status(400).json({ message: "Invalid input data" });
-    return;
-  }
+	if (!bookId) {
+		res.status(400).json({ message: "Invalid input data" });
+		return;
+	}
 
-  const locations = await Location.find({ bookId: bookId })
-    .populate("libraryId")
-    .populate("bookId");
-  if (!locations || locations.length === 0) {
-    res.status(404).json({ message: "Book not found" });
-    return;
-  }
+	const locations = await Location.find({ bookId: bookId })
+		.populate("libraryId")
+		.populate("bookId");
+	if (!locations || locations.length === 0) {
+		res.status(404).json({ message: "Book not found" });
+		return;
+	}
 
-  const availableLocations = [];
+	const availableLocations = [];
 
-  for (const location of locations) {
-    availableLocations.push({
-      libraryId: location.libraryId,
-      totalQuantity: location.totalQuantity,
-      availableQuantity: location.availableQuantity,
-    });
-  }
+	for (const location of locations) {
+		availableLocations.push({
+			libraryId: location.libraryId,
+			totalQuantity: location.totalQuantity,
+			availableQuantity: location.availableQuantity,
+		});
+	}
 
-  res.json({ availableLocations });
+	res.json({ availableLocations });
 });
 
 export {
-  getBookDetails,
-  modifyBookDetails,
-  getBooks,
-  rateBook,
-  issueBookToUser,
-  checkAvailability,
+	getBookDetails,
+	modifyBookDetails,
+	getBooks,
+	rateBook,
+	issueBookToUser,
+	checkAvailability,
 };

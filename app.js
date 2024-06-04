@@ -27,6 +27,10 @@ app.get("/", (req, res) => {
 	res.send("API is working fine :)");
 });
 
+app.get("/", (req, res) => {
+	res.send("API is working fine :)");
+});
+
 // Start Server
 app.listen(3000, connectDB(), async () => {
 	console.log("Server is running on port 3000");
