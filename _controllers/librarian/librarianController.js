@@ -453,6 +453,64 @@ const getSpecificIssue = AsyncErrorHandler(async (req, res) => {
   res.json(issue);
 });
 
+const getRenewalRequests = AsyncErrorHandler(async (req, res) => {
+  const renewals = await Issue.find({ status: "renew-requested" });
+  res.json(renewals);
+});
+
+const approveRenewal = AsyncErrorHandler(async (req, res) => {
+  const { issueId } = req.body;
+  if (!issueId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const issue = await Issue.findById(issueId);
+  if (!issue) {
+    res.status(400).json({ message: "Issue not found" });
+    return;
+  }
+
+  const library = await Library.findById(issue.libraryId);
+  if (!library) {
+    res.status(400).json({ message: "Library not found" });
+    return;
+  }
+
+  if (issue.status !== "renew-requested") {
+    res.status(400).json({ message: "Renewal not requested" });
+    return;
+  }
+
+  issue.status = "renew-approved";
+  issue.deadline = new Date(issue.deadline.getTime() + library.issuePeriod * 24 * 60 * 60 * 1000);
+  await issue.save();
+  res.json({ message: "Renewal approved successfully" , issue});
+});
+
+const rejectRenewal = AsyncErrorHandler(async (req, res) => {
+  const { issueId } = req.body;
+  if (!issueId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const issue = await Issue.findById(issueId);
+  if (!issue) {
+    res.status(400).json({ message: "Issue not found" });
+    return;
+  }
+
+  if (issue.status !== "renew-requested") {
+    res.status(400).json({ message: "Renewal not requested" });
+    return;
+  }
+
+  issue.status = "renew-rejected";
+  await issue.save();
+  res.json({ message: "Renewal rejected successfully" });
+});
+
 
 const approveFinePaymentRequest = async (req, res) => {
   const { requestId } = req.body;
@@ -490,5 +548,8 @@ export {
   createUser,
   createMultipleUser,
   loginLibrarian,
-  approveFinePaymentRequest
+  getRenewalRequests,
+  approveRenewal,
+  rejectRenewal
+  approveFinePaymentRequest 
 };
