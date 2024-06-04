@@ -96,95 +96,54 @@ const rateBook = AsyncErrorHandler(async (req, res) => {
 
 //issue book by ID
 const issueBookToUser = AsyncErrorHandler(async (req, res) => {
-	const userId = req.user;
-	const { books, libraryId } = req.body;
+  const userId = req.user;
+  const { bookId, libraryId } = req.body;
 
-	if (!userId || !books || !libraryId) {
-		res.status(400).json({ message: "Invalid input data" });
-		return;
-	}
-	if (books.length === 0) {
-		res.status(400).json({ message: "No books selected" });
-		return;
-	}
+  if (!userId || !bookId || !libraryId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+ 
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
 
-	const user = await User.findById(userId);
-	if (!user) {
-		res.status(404).json({ message: "User not found" });
-		return;
-	}
+  const library = await Library.findById(libraryId);
+  if (!library) {
+    res.status(404).json({ message: "Library not found" });
+    return;
+  }
 
-	const library = await Library.findById(libraryId);
-	if (!library) {
-		res.status(404).json({ message: "Library not found" });
-		return;
-	}
+  const book = await Book.findById(bookId);
+  if (!book) {
+    res.status(404).json({ message: "Book not found" });
+    return;
+  }
+  const location = await Location.findOne({ bookId, libraryId });
+  if (!location) {
+    res.status(404).json({ message: "Book not found in library" });
+    return;
+  }
 
-	if (books.length > library.maxBooks) {
-		res.status(400).json({ message: "You can only issue 5 books at a time" });
-		return;
-	}
+  if (location.availableQuantity <= 0) {
+    res.status(400).json({ message: "Book not available" });
+    return;
+  }
 
-	const booksToBeIssued = [];
-	const booksNotFoundInDatabase = [];
-	const booksNotFoundInLibrary = [];
-	const booksNotAvailable = [];
+  const issue = new Issue({
+    userId,
+    bookId,
+    libraryId,
+    date: Date.now(),
+    deadline: Date.now() + library.issuePeriod * 24 * 60 * 60 * 1000,
+  });
+  await issue.save();
 
-	for (const bookId of books) {
-		const book = await Book.findById(bookId);
-		if (!book) {
-			booksNotFoundInDatabase.push(bookId);
-			continue;
-		}
-		const location = await Location.findOne({ bookId, libraryId });
-
-		if (!location) {
-			booksNotFoundInLibrary.push(book);
-			continue;
-		}
-
-		if (location.availableQuantity <= 0) {
-			booksNotAvailable.push(book);
-			continue;
-		}
-
-		booksToBeIssued.push(bookId);
-		console.log("pushed");
-	}
-	console.log("looped");
-
-	if (booksToBeIssued.length === 0) {
-		res
-			.status(400)
-			.json({
-				message: "No books selected or found",
-				booksToBeIssued,
-				booksNotFoundInDatabase,
-				booksNotFoundInLibrary,
-				booksNotAvailable,
-			});
-		return;
-	}
-
-	const issue = new Issue({
-		books: booksToBeIssued,
-		userId: userId,
-		libraryId: libraryId,
-		date: new Date(),
-		deadline: new Date() + library.issuePeriod,
-		status: "requested",
-	});
-
-	await issue.save();
-	console.log("saved");
-	res.json({
-		issue,
-		message: "Book Issue request sent to the librarian issued",
-		booksToBeIssued,
-		booksNotFoundInDatabase,
-		booksNotFoundInLibrary,
-		booksNotAvailable,
-	});
+  location.availableQuantity--;
+  await location.save();
+  res.status(201).json({ message: "Book issued successfully" });
 });
 
 const checkAvailability = AsyncErrorHandler(async (req, res) => {
@@ -216,11 +175,66 @@ const checkAvailability = AsyncErrorHandler(async (req, res) => {
 	res.json({ availableLocations });
 });
 
+const getUserIssues = AsyncErrorHandler(async (req, res) => {
+  const userId = req.user;
+
+  if (!userId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+
+  const issues = await Issue.find({ userId });
+  if (!issues || issues.length === 0) {
+    res.status(404).json({ message: "No issues found" });
+    return;
+  }
+
+  res.json({ issues });
+});
+
+const requestRenewal = AsyncErrorHandler(async (req, res) => {
+  const userId = req.user;
+  const { issueId } = req.body;
+  if (!issueId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const issue = await Issue.findById(issueId);
+
+  if (!issue) {
+    res.status(404).json({ message: "Issue not found" });
+    return;
+  }
+
+  if (issue.userId.toString() !== userId.toString()) {
+    res.status(401).json({ message: "Unauthorized access" });
+    return;
+  }
+
+  if (issue.status !== "issued") {
+    res.status(400).json({ message: "Issue not issued" });
+    return;
+  }
+
+  issue.status = "renew-requested";
+  await issue.save();
+  res.json({ message: "Renewal requested successfully" });
+});
+
 export {
-	getBookDetails,
-	modifyBookDetails,
-	getBooks,
-	rateBook,
-	issueBookToUser,
-	checkAvailability,
+  getBookDetails,
+  modifyBookDetails,
+  getBooks,
+  rateBook,
+  issueBookToUser,
+  checkAvailability,
+  getUserIssues,
+  requestRenewal,
 };
