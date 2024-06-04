@@ -51,6 +51,7 @@ const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
 //get all books
 const getBooks = AsyncErrorHandler(async (req, res) => {
 	const allBooks = await Book.find();
+
 	if (!allBooks || allBooks.length === 0) {
 		res.status(404).json({ message: "No books found" });
 		return;
@@ -146,32 +147,32 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
 });
 
 const checkAvailability = AsyncErrorHandler(async (req, res) => {
-  const { bookId } = req.body;
+	const { bookId } = req.body;
 
-  if (!bookId) {
-    res.status(400).json({ message: "Invalid input data" });
-    return;
-  }
+	if (!bookId) {
+		res.status(400).json({ message: "Invalid input data" });
+		return;
+	}
 
-  const locations = await Location.find({ bookId: bookId })
-    .populate("libraryId")
-    .populate("bookId");
-  if (!locations || locations.length === 0) {
-    res.status(404).json({ message: "Book not found" });
-    return;
-  }
+	const locations = await Location.find({ bookId: bookId })
+		.populate("libraryId")
+		.populate("bookId");
+	if (!locations || locations.length === 0) {
+		res.status(404).json({ message: "Book not found" });
+		return;
+	}
 
-  const availableLocations = [];
+	const availableLocations = [];
 
-  for (const location of locations) {
-    availableLocations.push({
-      libraryId: location.libraryId,
-      totalQuantity: location.totalQuantity,
-      availableQuantity: location.availableQuantity,
-    });
-  }
+	for (const location of locations) {
+		availableLocations.push({
+			libraryId: location.libraryId,
+			totalQuantity: location.totalQuantity,
+			availableQuantity: location.availableQuantity,
+		});
+	}
 
-  res.json({ availableLocations });
+	res.json({ availableLocations });
 });
 
 const getUserIssues = AsyncErrorHandler(async (req, res) => {
