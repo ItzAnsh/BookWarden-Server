@@ -89,14 +89,11 @@ const getUserIssues = AsyncErrorHandler(async (req, res) => {
 
 //FINE FOR LOST BOOK
 const payFineForLostBook = async (req, res) => {
-    const { userId, bookId } = req.body;
+	const userId = req.user
+    const { bookId } = req.body;
 
-    const user = await User.findById(userId);
     const book = await Book.findById(bookId);
 
-    if (!user) {
-        return res.status(404).send("User not found!");
-    }
 	if (!book) {
         return res.status(404).send("Book not found!");
     }
@@ -114,12 +111,11 @@ const payFineForLostBook = async (req, res) => {
 
 const requestFinePaymentForOverdueBook = async (req, res) => {
 	// const id = req.user;
-    const { userId, bookId } = req.body;
+    const { bookId } = req.body;
 
-    const user = await User.findById(userId);
     const book = await Book.findById(bookId);
 
-    if (!user || !book) {
+    if (!book) {
         return res.status(404).send("User or book not found!");
     }
 
@@ -132,7 +128,7 @@ const requestFinePaymentForOverdueBook = async (req, res) => {
         userId: user._id,
         bookId: book._id,
         fineAmount: calculateOverdueFine(daysOverdue),
-        status: 'Requested'
+        status: 'Applying'
     });
     await finePaymentRequest.save();
 
@@ -165,6 +161,7 @@ const payFineForOverdueBook = async (req, res) => {
     }
 
     //payment process---
+	
 	request.status = 'Completed';
     await request.save();
 
