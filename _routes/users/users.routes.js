@@ -1,19 +1,23 @@
 import express from "express";
 // Ashi's Functions
 import {
-	getBookDetails,
-	getBooks,
-	rateBook,
-	issueBookToUser,
-	checkAvailability,
+  getBookDetails,
+  getBooks,
+  rateBook,
+  issueBookToUser,
+  checkAvailability,
+  requestRenewal,
+  reportLostFine,
+  getFines,
+  payFine,
 } from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
 import {
-	getUser,
-	loginUser,
-	updatePassword,
-	getUserIssues,
+  getUser,
+  loginUser,
+  updatePassword,
+  getUserIssues,
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
@@ -26,19 +30,23 @@ router.post("/login", loginUser);
 router.post("/updatePassword", protect, updatePassword);
 router.get("/getUserIssues", protect, getUserIssues);
 router.post("/checkAvailability", protect, checkAvailability);
+router.post("/requestRenewal", protect, requestRenewal);
+router.post("/reportLostFine", protect, reportLostFine);
+router.get("/getFines", protect, getFines);
+router.post("/payFine", protect, payFine);
 
 //Ashi's Routes
 //Get details of single book
-router.get("/bookDetails/:id",protect, getBookDetails); //done
+router.get("/bookDetails/:id", protect, getBookDetails); //done
 
 //Get all books
-router.get("/getBooks",protect, getBooks); //done
+router.get("/getBooks", protect, getBooks); //done
 
 //Rating of single book
-router.post("/rateBook/:id",protect, rateBook); //p
+router.post("/rateBook/:id", protect, rateBook); //p
 
 //Issue book to user
-router.post("/issueBook",protect, issueBookToUser); //done
+router.post("/issueBook", protect, issueBookToUser); //done
 
 export default router;
 

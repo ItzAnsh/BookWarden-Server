@@ -38,6 +38,10 @@ const librarySchema = new mongoose.Schema({
   maxBooks: {
 	type: Number,
 	required: true,
+  },
+  fineInterest : {
+	type: Number,
+	required: true,
   }
 });
 
