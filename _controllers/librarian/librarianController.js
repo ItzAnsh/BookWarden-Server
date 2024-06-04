@@ -550,6 +550,6 @@ export {
   loginLibrarian,
   getRenewalRequests,
   approveRenewal,
-  rejectRenewal
+  rejectRenewal,
   approveFinePaymentRequest 
 };
