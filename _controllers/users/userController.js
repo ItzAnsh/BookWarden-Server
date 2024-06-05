@@ -9,9 +9,15 @@ const getUser = AsyncErrorHandler(async (req, res) => {
 	const id = req.user;
 
 	if (!id) {
-		res.status(400).json({ message: "User not found" });
+		res.status(400).json({ message: "Invalid user" });
+		return
 	}
-	const user = await User.findById({ _id: mongoose.Types.ObjectId(id) });
+	const user = await User.findById(id);
+
+	if (!user) {
+		res.status(400).json({ message: "User not found" });
+		return
+	}
 	res.json(user);
 });
 
@@ -52,16 +58,19 @@ const updatePassword = AsyncErrorHandler(async (req, res) => {
 
 	if (!id || !oldPassword || !newPassword) {
 		res.status(400).json({ message: "All fields are required" });
+		return
 	}
 
 	const user = await User.findById({ _id: id });
 
 	if (!user) {
 		res.status(400).json({ message: "User not found" });
+		return
 	}
 
 	if (!(await user.matchPassword(oldPassword))) {
 		res.status(400).json({ message: "Invalid credentials" });
+		return
 	}
 
 	user.password = newPassword;
@@ -75,11 +84,13 @@ const getUserIssues = AsyncErrorHandler(async (req, res) => {
 	const user = await User.findById(id);
 	if (!user) {
 		res.status(400).json({ message: "User not found" });
+		return
 	}
 
 	const issuedBooks = await Issue.find({ userId: id }).populate("books");
 	if (!issuedBooks) {
 		res.status(400).json({ message: "Issue not found" });
+		return
 	}
 	res.json(issuedBooks);
 });
