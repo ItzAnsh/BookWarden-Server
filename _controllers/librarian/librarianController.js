@@ -649,6 +649,24 @@ const updateFine = AsyncErrorHandler(async (req, res) => {
   res.json({ message: "Fine updated successfully" });
 });
 
+const approveFinePaymentRequest = async (req, res) => {
+  const { requestId } = req.body;
+
+  const request = await FinePaymentRequest.findById(requestId);
+  if (!request) {
+      return res.status(404).send("Fine payment request not found!");
+  }
+
+  if (request.status === 'Approved' || request.status === 'Completed') {
+      return res.status(400).send("Fine payment request has already been approved or completed!");
+  }
+
+  request.status = 'Approved';
+  await request.save();
+
+  res.json({ message: `Fine payment request approved successfully.` });
+};
+
 export {
   getAllBooks,
   getBook,
@@ -675,4 +693,5 @@ export {
   getLibraryFines,
   revokeFine,
   updateFine
+  approveFinePaymentRequest 
 };

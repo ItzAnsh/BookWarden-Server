@@ -84,6 +84,7 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
 
 const updateLibrary = AsyncErrorHandler(async (req, res) => {
   const { libraryId } = req.params;
+
   if (!libraryId) {
     res.status(400);
   }
@@ -136,6 +137,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
   }
   res.json(updateLibrary);
 });
+
 
 const createLibrarian = AsyncErrorHandler(async (req, res) => {
   const { name, email } = req.body;
@@ -250,6 +252,7 @@ export {
   getAllUsers,
   getSpecificUser,
   createLibrary,
+  deleteLibrary,
   updateLibrary,
   createLibrarian,
   createMultipleLibrarians,

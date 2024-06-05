@@ -18,6 +18,13 @@ import {
   loginUser,
   updatePassword,
   getUserIssues,
+	getUser,
+	loginUser,
+	updatePassword,
+	getUserIssues,
+	payFineForLostBook,
+	requestFinePaymentForOverdueBook,
+	payFineForOverdueBook
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
@@ -48,6 +55,16 @@ router.post("/rateBook/:id", protect, rateBook); //p
 //Issue book to user
 router.post("/issueBook", protect, issueBookToUser); //done
 
-export default router;
+//Fine for lost book
+router.post("/payFineForLostBook",protect, payFineForLostBook);
+
 
 //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NTgwN2YyN2NiZGFlMzRhZmNhNWE2NiIsImlhdCI6MTcxNzA0ODUwNiwiZXhwIjoxNzE3NjUzMzA2fQ.sneJPD2KxJWY3QTho2lzPoGFZwNTKmhjh_9ZjBcK2ko
+
+//Req for fine payment
+router.post("/requestFinePayment",protect, requestFinePaymentForOverdueBook);
+
+//Pay fine after getting approved
+router.post("/payFine" , protect , payFineForOverdueBook);
+
+export default router;

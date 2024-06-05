@@ -1,7 +1,7 @@
 import express from "express";
 
 // Controller actions
-import { modifyUser, getAllUsers, createLibrary, createLibrarian, createMultipleLibrarians, loginAdmin, registerAdmin } from "../../_controllers/admin/adminController.js";
+import { modifyUser, getAllUsers, createLibrary, createLibrarian, createMultipleLibrarians, loginAdmin, registerAdmin, updateLibrary } from "../../_controllers/admin/adminController.js";
 
 import { adminProtect } from "../../middlewares/authMiddleware.js";
 // Router Setup
@@ -14,6 +14,8 @@ router.get("/", (req, res) => {
 router.post("/modifyUser", adminProtect, modifyUser); 
 router.get("/getAllUsers",adminProtect, getAllUsers); //done
 router.post("/createLibrary",adminProtect, createLibrary);
+router.post("/updateLibrary/:id", adminProtect, updateLibrary); //done
+
 router.post("/createLibrarian",adminProtect, createLibrarian);//done
 router.post("/createMultipleLibrarians",adminProtect, createMultipleLibrarians);
 router.post("/loginAdmin", loginAdmin); //done
