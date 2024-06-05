@@ -596,6 +596,52 @@ const getLibraryFines = AsyncErrorHandler(async (req, res) => {
   res.json(fines);
 });
 
+const revokeFine = AsyncErrorHandler(async (req, res) => {
+  const { fineId } = req.body;
+  if (!fineId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const fine = await Fine.findById(fineId).populate("issueId issueId.libraryId");
+  if (!fine) {
+    res.status(400).json({ message: "Fine not found" });
+    return;
+  }
+
+  if (fine.issueId.libraryId.librarian.toString() !== req.user.toString()) {
+    res.status(401).json({ message: "Unauthorized access" });
+    return;
+  }
+
+  fine.status = "Revoked";
+  await fine.save();
+  res.json({ message: "Fine revoked successfully" });
+});
+
+const updateFine = AsyncErrorHandler(async (req, res) => {
+  const { fineId, amount } = req.body;
+  if (!fineId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const fine = await Fine.findById(fineId).populate("issueId issueId.libraryId");
+  if (!fine) {
+    res.status(400).json({ message: "Fine not found" });
+    return;
+  }
+
+  if (fine.issueId.libraryId.librarian.toString() !== req.user.toString()) {
+    res.status(401).json({ message: "Unauthorized access" });
+    return;
+  }
+
+  fine.amount = amount;
+  await fine.save();
+  res.json({ message: "Fine updated successfully" });
+});
+
 export {
   getAllBooks,
   getBook,
@@ -619,5 +665,7 @@ export {
   rejectRenewal,
   approveOverdueFine,
   approveReturn,
-  getLibraryFines
+  getLibraryFines,
+  revokeFine,
+  updateFine
 };

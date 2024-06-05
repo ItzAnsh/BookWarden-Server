@@ -23,6 +23,8 @@ import {
   approveOverdueFine,
   approveReturn,
   getLibraryFines,
+  revokeFine,
+  updateFine
 } from "../../_controllers/librarian/librarianController.js";
 
 import { librarianProtect } from "../../middlewares/authMiddleware.js";
@@ -56,5 +58,7 @@ router.patch("/rejectRenewal",librarianProtect, rejectRenewal);
 router.patch("/approveOverdueFine",librarianProtect, approveOverdueFine);
 router.patch("/approveReturn",librarianProtect, approveReturn);
 router.get("/getLibraryFines",librarianProtect, getLibraryFines);
+router.patch("/revokeFine",librarianProtect, revokeFine);
+router.patch("/updateFine",librarianProtect, updateFine);
 
 export default router;
