@@ -12,7 +12,7 @@ const getUser = AsyncErrorHandler(async (req, res) => {
 		res.status(400).json({ message: "Invalid user" });
 		return
 	}
-	const user = await User.findById(id);
+	const user = await User.findById(id).select('-password');
 
 	if (!user) {
 		res.status(400).json({ message: "User not found" });
