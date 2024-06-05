@@ -7,7 +7,8 @@ import User from "../../_models/users/user.model.js";
 import { sendWelcomeEmail } from "../../lib/nodemailer.js";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+
+
 
 dotenv.config();
 
@@ -46,12 +47,23 @@ const modifyUser = AsyncErrorHandler(async (req, res) => {
 });
 
 const createLibrary = AsyncErrorHandler(async (req, res) => {
-  const { name, location, contactNo, contactEmail, maxBooks, issuePeriod } = req.body;
+  const { name, location, contactNo, contactEmail, maxBooks, issuePeriod, librarianEmail, fineInterest } = req.body;
 
-  if (!name || !location || !contactNo || !contactEmail || !maxBooks || !issuePeriod) {
+  if (!name || !location || !contactNo || !contactEmail || !maxBooks || !issuePeriod || !librarianEmail || !fineInterest) {
     res.status(400).json({
       message: "All fields are required",
     });
+  }
+  let librarian = await Users.find({ email: librarianEmail });
+  if (!librarian) {
+    librarian = new Users({
+      email: librarianEmail,
+      password: generateStrongPassword(),
+      role: process.env.LIBRARIAN_KEY,
+      adminId: req.user,
+    })
+
+    await librarian.save();
   }
 
   const newLibrary = new Library({
@@ -63,6 +75,8 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     adminId: req.user,
     issuePeriod,
     maxBooks,
+    fineInterest,
+    librarians: librarian._id,
   });
   await newLibrary.save();
   res.json(newLibrary);
@@ -70,40 +84,58 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
 
 const updateLibrary = AsyncErrorHandler(async (req, res) => {
   const { libraryId } = req.params;
-  const { name, location, contactNo, contactEmail, maxBooks, issuePeriod } = req.body;
 
-  const library = await Library.findOne(libraryId);
-
-  if (!library) {
-    return res.status(404).json({
-      message: "Library not found",
-    });
+  if (!libraryId) {
+    res.status(400);
   }
 
-  if (name) library.name = name;
-  if (location) library.location = location;
-  if (contactNo) library.contactNo = contactNo;
-  if (contactEmail) library.contactEmail = contactEmail;
-  if (maxBooks) library.maxBooks = maxBooks;
-  if (issuePeriod) library.issuePeriod = issuePeriod;
-
-  await library.save();
-  res.json(library);
-});
-
-const deleteLibrary = AsyncErrorHandler(async (req, res) => {
-  const { libraryId } = req.params;
-
-  const library = await Library.findById(libraryId);
-
+  const library = await Library.findById({ _id: mongoose.Types.ObjectId(libraryId) });
   if (!library) {
-    return res.status(404).json({
-      message: "Library not found",
-    });
+    res.status(400).json({ message: "Library not found" });
   }
 
-  await library.remove();
-  res.json({ message: "Library deleted successfully" });
+  let { name, location, contactNo, contactEmail, maxBooks, issuePeriod, librarianEmail, fineInterest } = req.body;
+
+  let librarian = await Users.findOne({ email: librarianEmail });
+  if (!librarian) {
+    librarian = new Users({
+      email: librarianEmail,
+      password: generateStrongPassword(),
+      role: process.env.LIBRARIAN_KEY,
+      adminId: req.user,
+    })
+
+    await librarian.save();
+  }
+
+  name = name || library.name;
+  location = location || library.location;
+  contactNo = contactNo || library.contactNo;
+  contactEmail = contactEmail || library.contactEmail;
+  maxBooks = maxBooks || library.maxBooks;
+  issuePeriod = issuePeriod || library.issuePeriod;
+  fineInterest = fineInterest || library.fineInterest;
+  
+  const updateLibrary = await Library.findByIdAndUpdate(
+    { _id: mongoose.Types.ObjectId(libraryId) },
+    {
+      name,
+      location,
+      contactNo,
+      contactEmail,
+      totalBooks: 0,
+      adminId: req.user,
+      issuePeriod,
+      maxBooks,
+      fineInterest,
+      librarians: librarian._id,
+    }
+  );
+
+  if (!updateLibrary) {
+    res.status(400).json({ message: "Library not Updated" });
+  }
+  res.json(updateLibrary);
 });
 
 

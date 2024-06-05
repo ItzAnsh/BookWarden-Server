@@ -27,7 +27,7 @@ const issueSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["rejected", "requested", "issued", "returned", "fined", "fining", "renew-requested", "renewe-rejected", "renew-approved"],
+    enum: ["rejected", "requested", "issued", "returned", "fined", "fining", "fining-returned", "renew-requested", "renew-rejected", "renew-approved"],
     default: "requested",
     required: true,
   },

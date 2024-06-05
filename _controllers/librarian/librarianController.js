@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import Issue from "../../_models/Issue/issue.model.js";
 import Library from "../../_models/Library/library.model.js";
 import Location from "../../_models/locations/locations.model.js";
+import Fine from "../../_models/fine/fine.model.js";
 
 const getAllBooks = AsyncErrorHandler(async (req, res) => {
   const books = await Book.find();
@@ -388,7 +389,7 @@ const approveIssue = AsyncErrorHandler(async (req, res) => {
   }
 
   const issue = await Issue.findById(issueId)
-    .populate("books")
+    .populate("bookId")
     .populate("userId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
@@ -417,7 +418,7 @@ const rejectIssue = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issue = await Issue.findById(issueId);
+  const issue = await Issue.findById(issueId).populate("bookId").populate("userId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
@@ -511,6 +512,142 @@ const rejectRenewal = AsyncErrorHandler(async (req, res) => {
   res.json({ message: "Renewal rejected successfully" });
 });
 
+const approveOverdueFine = AsyncErrorHandler(async (req, res) => {
+  const { fineId } = req.body;
+  if (!fineId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const fine = await Fine.findById(fineId);
+  if (!fine) {
+    res.status(400).json({ message: "Fine not found" });
+    return;
+  }
+
+  if (fine.status !== "Pending") {
+    res.status(400).json({ message: "Fine not pending" });
+    return;
+  }
+  if (fine.category !== "Due date exceeded") {
+    res.status(400).json({ message: "Fine not due date exceeded" });
+    return;
+  }
+
+  fine.status = "Approved";
+  await fine.save();
+  res.json({ message: "Fine approved successfully" });
+});
+
+const approveReturn = AsyncErrorHandler(async (req, res) => {
+  const { issueId } = req.body;
+  if (!issueId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const issue = await Issue.findById(issueId);
+  if (!issue) {
+    res.status(400).json({ message: "Issue not found" });
+    return;
+  }
+
+  if (issue.status === "returned" || issue.status === "fined") {
+    res.status(400).json({ message: "Issue already returned" });
+    return;
+  }
+
+  if (issue.status === "fining") {
+    const fine = await Fine.findOne({ issueId });
+    if (!fine) {
+      res.status(400).json({ message: "Fine not found" });
+      return;
+    }
+    fine.status = "Approved";
+    await fine.save();
+
+    issue.status = "fining-returned";
+    await issue.save();
+    res.json({ message: "Book returned successfully, fine approved" });
+  }else if (issue.status === "issued" || issue.status === "renew-approved") {
+    issue.status = "returned";
+    await issue.save();
+    res.json({ message: "Book returned successfully" });
+  }else {
+    res.status(400).json({ message: "Issue not issued" });
+    return;
+  }
+  const location = await Location.findOne({ bookId: issue.bookId });
+    if (!location) {
+      res.status(400).json({ message: "Location not found" });
+      return;
+    }
+    location.availableQuantity += 1;
+    await location.save();
+});
+
+const getLibraryFines = AsyncErrorHandler(async (req, res) => {
+  const librarianId = req.user;
+  if (!librarianId) {
+    res.status(400).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const library = await Library.findOne({librarian : librarianId});
+  if (!library) {
+    res.status(400).json({ message: "Library not found" });
+    return;
+  }
+
+  const fines = await Fine.find({libraryId: library._id});
+  res.json(fines);
+});
+
+const revokeFine = AsyncErrorHandler(async (req, res) => {
+  const { fineId } = req.body;
+  if (!fineId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const fine = await Fine.findById(fineId).populate("issueId issueId.libraryId");
+  if (!fine) {
+    res.status(400).json({ message: "Fine not found" });
+    return;
+  }
+
+  if (fine.issueId.libraryId.librarian.toString() !== req.user.toString()) {
+    res.status(401).json({ message: "Unauthorized access" });
+    return;
+  }
+
+  fine.status = "Revoked";
+  await fine.save();
+  res.json({ message: "Fine revoked successfully" });
+});
+
+const updateFine = AsyncErrorHandler(async (req, res) => {
+  const { fineId, amount } = req.body;
+  if (!fineId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const fine = await Fine.findById(fineId).populate("issueId issueId.libraryId");
+  if (!fine) {
+    res.status(400).json({ message: "Fine not found" });
+    return;
+  }
+
+  if (fine.issueId.libraryId.librarian.toString() !== req.user.toString()) {
+    res.status(401).json({ message: "Unauthorized access" });
+    return;
+  }
+
+  fine.amount = amount;
+  await fine.save();
+  res.json({ message: "Fine updated successfully" });
+});
 
 const approveFinePaymentRequest = async (req, res) => {
   const { requestId } = req.body;
@@ -551,5 +688,10 @@ export {
   getRenewalRequests,
   approveRenewal,
   rejectRenewal,
+  approveOverdueFine,
+  approveReturn,
+  getLibraryFines,
+  revokeFine,
+  updateFine
   approveFinePaymentRequest 
 };

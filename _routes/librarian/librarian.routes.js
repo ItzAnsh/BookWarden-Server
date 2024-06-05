@@ -17,8 +17,15 @@ import {
   createUser,
   createMultipleUser,
   loginLibrarian,
+  getRenewalRequests,
+  approveRenewal,
+  rejectRenewal,
+  approveOverdueFine,
+  approveReturn,
+  getLibraryFines,
+  revokeFine,
+  updateFine,
   approveFinePaymentRequest
-
 } from "../../_controllers/librarian/librarianController.js";
 
 import { librarianProtect } from "../../middlewares/authMiddleware.js";
@@ -46,6 +53,14 @@ router.post("/createGenre",librarianProtect, createGenre);
 router.post("/createUser",librarianProtect, createUser);
 router.post("/createMultipleUser",librarianProtect, createMultipleUser);
 router.post("/loginLibrarian", loginLibrarian);
+router.get("/getRenewalRequests",librarianProtect, getRenewalRequests);
+router.patch("/approveRenewal",librarianProtect, approveRenewal);
+router.patch("/rejectRenewal",librarianProtect, rejectRenewal);
+router.patch("/approveOverdueFine",librarianProtect, approveOverdueFine);
+router.patch("/approveReturn",librarianProtect, approveReturn);
+router.get("/getLibraryFines",librarianProtect, getLibraryFines);
+router.patch("/revokeFine",librarianProtect, revokeFine);
+router.patch("/updateFine",librarianProtect, updateFine);
 router.post("/approveFinePaymentRequest", librarianProtect, approveFinePaymentRequest);
 
 export default router;
