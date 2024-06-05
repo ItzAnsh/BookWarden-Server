@@ -5,7 +5,6 @@ import mongoose from "mongoose";
 import Issue from "../../_models/Issue/issue.model.js";
 import Book from "../../_models/books/book.model.js";
 import { findRole } from "../../lib/findRole.js";
-import FinePaymentRequest from "../../_models/FinePaymentRequest/finePayment.model.js";
 import Fine from "../../_models/fine/fine.model.js";
 
 const getUser = AsyncErrorHandler(async (req, res) => {
