@@ -68,6 +68,45 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
   res.json(newLibrary);
 });
 
+const updateLibrary = AsyncErrorHandler(async (req, res) => {
+  const { libraryId } = req.params;
+  const { name, location, contactNo, contactEmail, maxBooks, issuePeriod } = req.body;
+
+  const library = await Library.findOne(libraryId);
+
+  if (!library) {
+    return res.status(404).json({
+      message: "Library not found",
+    });
+  }
+
+  if (name) library.name = name;
+  if (location) library.location = location;
+  if (contactNo) library.contactNo = contactNo;
+  if (contactEmail) library.contactEmail = contactEmail;
+  if (maxBooks) library.maxBooks = maxBooks;
+  if (issuePeriod) library.issuePeriod = issuePeriod;
+
+  await library.save();
+  res.json(library);
+});
+
+const deleteLibrary = AsyncErrorHandler(async (req, res) => {
+  const { libraryId } = req.params;
+
+  const library = await Library.findById(libraryId);
+
+  if (!library) {
+    return res.status(404).json({
+      message: "Library not found",
+    });
+  }
+
+  await library.remove();
+  res.json({ message: "Library deleted successfully" });
+});
+
+
 const createLibrarian = AsyncErrorHandler(async (req, res) => {
   const { name, email } = req.body;
 
@@ -181,6 +220,8 @@ export {
   getAllUsers,
   getSpecificUser,
   createLibrary,
+  deleteLibrary,
+  updateLibrary,
   createLibrarian,
   createMultipleLibrarians,
   registerAdmin,

@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 
-const fineSchema = new mongoose.Schema[{
+const fineSchema = new mongoose.Schema({
     issueId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true
@@ -30,7 +30,7 @@ const fineSchema = new mongoose.Schema[{
         type: String,
         required: true
     }
-}]
+})
 
 const Fine = mongoose.model("fine",fineSchema);
 
