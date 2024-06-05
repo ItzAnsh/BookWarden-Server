@@ -270,6 +270,7 @@ const reportLostFine = AsyncErrorHandler(async (req, res) => {
     res.status(404).json({ message: "Location not found" });
     return;
   }
+  
   location.totalQuantity--;
   await location.save();
 
