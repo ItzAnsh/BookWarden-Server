@@ -127,8 +127,6 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
       location,
       contactNo,
       contactEmail,
-      totalBooks: 0,
-      adminId: req.user,
       issuePeriod,
       maxBooks,
       fineInterest,
