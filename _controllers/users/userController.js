@@ -1,10 +1,8 @@
 import User from "../../_models/users/user.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
 import Issue from "../../_models/Issue/issue.model.js";
 import Book from "../../_models/books/book.model.js";
-import { findRole } from "../../lib/findRole.js";
 import Fine from "../../_models/fine/fine.model.js";
 
 const getUser = AsyncErrorHandler(async (req, res) => {
