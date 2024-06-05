@@ -6,6 +6,7 @@ import Issue from "../../_models/Issue/issue.model.js";
 import Book from "../../_models/books/book.model.js";
 import { findRole } from "../../lib/findRole.js";
 import FinePaymentRequest from "../../_models/FinePaymentRequest/finePayment.model.js";
+import Fine from "../../_models/fine/fine.model.js";
 
 const getUser = AsyncErrorHandler(async (req, res) => {
 	const id = req.user;
@@ -50,14 +51,13 @@ const loginUser = AsyncErrorHandler(async (req, res) => {
 
 const updatePassword = AsyncErrorHandler(async (req, res) => {
 	const id = req.user;
-	const { oldPassword, newPassword } = req.body;
 
+	const { oldPassword, newPassword } = req.body;
 	if (!id || !oldPassword || !newPassword) {
 		res.status(400).json({ message: "All fields are required" });
 	}
 
 	const user = await User.findById({ _id: id });
-
 	if (!user) {
 		res.status(400).json({ message: "User not found" });
 	}
@@ -89,54 +89,80 @@ const getUserIssues = AsyncErrorHandler(async (req, res) => {
 
 //FINE FOR LOST BOOK
 const payFineForLostBook = async (req, res) => {
-	const userId = req.user
-    const { bookId } = req.body;
+    const { issueId } = req.body;
 
-    const book = await Book.findById(bookId);
-
-	if (!book) {
-        return res.status(404).send("Book not found!");
+    const issue = await Issue.findById(issueId);
+    if (!issue) {
+        return res.status(404).send("Issue not found!");
     }
 
-    const transaction = new Transaction({
-        userId: user._id,
-        bookId: book._id,
+    const fine = await Fine.findOne({ issueId: issue._id });
+    if (!fine) {
+        return res.status(404).send("Fine not found!");
+    }
+
+    fine.transaction = {
+        userId: issue.userId,
+        bookId: issue.bookId,
         amount: Book.price,
         type: 'Lost Book Payment'
-    });
-    await transaction.save();
+    };
 
-    res.json({ message: `Payment successfully processed.` });
+    fine.status = 'fined';
+    await fine.save();
+
+    res.json({ message: `Payment for lost book successfully processed.` });
 };
 
+
 const requestFinePaymentForOverdueBook = async (req, res) => {
-	// const id = req.user;
-    const { bookId } = req.body;
-
-    const book = await Book.findById(bookId);
-
-    if (!book) {
-        return res.status(404).send("User or book not found!");
+    const { issueId } = req.body;
+    const issue = await Issue.findById(issueId);
+    if (!issue) {
+        return res.status(404).send("Issue not found!");
     }
 
-    const daysOverdue = calculateDaysOverdue(book.returnDate);
+    const daysOverdue = calculateDaysOverdue(issue.deadline);
     if (daysOverdue <= 0) {
         return res.status(400).send("Book is not overdue yet!");
     }
 
-    const finePaymentRequest = new FinePaymentRequest({
-        userId: user._id,
-        bookId: book._id,
-        fineAmount: calculateOverdueFine(daysOverdue),
-        status: 'Applying'
+    const fineAmount = calculateOverdueFine(daysOverdue);
+    const fine = new Fine({
+        issueId: issue._id,
+        amount: fineAmount,
+        status: 'Pending',
+        fCategory: 'Due date exceeded',
+        transactionId: null
     });
-    await finePaymentRequest.save();
 
+    await fine.save();
     res.json({ message: `Fine payment request for overdue book submitted successfully.` });
 };
 
+const payFineForOverdueBook = async (req, res) => {
+    const { requestId } = req.body;
+
+    const fine = await Fine.findById(requestId);
+
+    if (!fine) {
+        return res.status(404).send("Fine not found!");
+    }
+
+    if (fine.status !== 'Approved') {
+        return res.status(400).send("Fine has not been approved yet!");
+    }
+
+    // Perform payment process if needed...
+
+    fine.status = 'Completed';
+    await fine.save();
+
+    res.json({ message: `Fine payment completed successfully.` });
+};
+
 const calculateOverdueFine = (daysOverdue) => {
-    const fineRatePerDay = 20; 
+    const fineRatePerDay = 20; ///-----
     return fineRatePerDay * daysOverdue;
 };
 
@@ -146,28 +172,6 @@ const calculateDaysOverdue = (returnDate) => {
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
     return Math.max(0, diffInDays);
 };
-
-
-const payFineForOverdueBook = async (req, res) => {
-    const { requestId } = req.body;
-
-    const request = await FinePaymentRequest.findById(requestId);
-    if (!request) {
-        return res.status(404).send("Fine payment request not found!");
-    }
-
-    if (request.status !== 'Approved') {
-        return res.status(400).send("Fine payment request has not been approved yet!");
-    }
-
-    //payment process---
-	
-	request.status = 'Completed';
-    await request.save();
-
-    res.json({ message: `Fine payment completed successfully.` });
-};
-
 
 export { 
 	getUser,
