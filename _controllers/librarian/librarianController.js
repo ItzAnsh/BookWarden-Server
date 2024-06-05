@@ -395,6 +395,13 @@ const approveIssue = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "Issue not found" });
     return;
   }
+
+  const location = await Location.findOne({bookId : issue.bookId._id, libraryId : issue.libraryId});
+  if (!location) {
+    res.status(400).json({ message: "Location not found" });
+    return;
+  }
+
   if (issue.status === "issued") {
     res.status(400).json({ message: "Issue already Approved" });
     return;
@@ -406,6 +413,8 @@ const approveIssue = AsyncErrorHandler(async (req, res) => {
   }
   issue.status = "issued";
   await issue.save();
+  location.availableQuantity -= 1;
+  await location.save();
   sendIssueStatusEmail(issue.userId.email, issue);
   res.json(issue);
 });
@@ -472,14 +481,25 @@ const approveRenewal = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const library = await Library.findById(issue.libraryId);
-  if (!library) {
-    res.status(400).json({ message: "Library not found" });
+  if (issue.status !== "renew-requested") {
+    res.status(400).json({ message: "Renewal not requested" });
     return;
   }
 
-  if (issue.status !== "renew-requested") {
-    res.status(400).json({ message: "Renewal not requested" });
+  const fine = await Fine.findOne({ issueId: issue._id });
+  if (fine) {
+    res.status(400).json({ message: "Can't renew with fine" });
+    return;
+  }
+
+  if (Date.now() > issue.deadline.getTime() - 2 * 24 * 60 * 60 * 1000) {
+    res.status(400).json({ message: "Renewal deadline exceeded" });
+    return;
+  }
+
+  const library = await Library.findById(issue.libraryId);
+  if (!library) {
+    res.status(400).json({ message: "Library not found" });
     return;
   }
 
@@ -553,7 +573,7 @@ const approveReturn = AsyncErrorHandler(async (req, res) => {
   }
 
   if (issue.status === "returned" || issue.status === "fined") {
-    res.status(400).json({ message: "Issue already returned" });
+    res.status(400).json({ message: "Issue already returned or fined" });
     return;
   }
 
@@ -561,6 +581,10 @@ const approveReturn = AsyncErrorHandler(async (req, res) => {
     const fine = await Fine.findOne({ issueId });
     if (!fine) {
       res.status(400).json({ message: "Fine not found" });
+      return;
+    }
+    if (fine.category == "Lost or damaged") {
+      res.status(404).json({ message: "Can't return lost or damaged book" });
       return;
     }
     fine.status = "Approved";
@@ -577,7 +601,7 @@ const approveReturn = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "Issue not issued" });
     return;
   }
-  const location = await Location.findOne({ bookId: issue.bookId });
+  const location = await Location.findOne({ bookId: issue.bookId, libraryId: issue.libraryId });
     if (!location) {
       res.status(400).json({ message: "Location not found" });
       return;
@@ -692,6 +716,6 @@ export {
   approveReturn,
   getLibraryFines,
   revokeFine,
-  updateFine
+  updateFine,
   approveFinePaymentRequest 
 };

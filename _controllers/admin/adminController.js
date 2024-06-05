@@ -56,13 +56,14 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
   }
   let librarian = await Users.find({ email: librarianEmail });
   if (!librarian) {
+    const password = generateStrongPassword();
     librarian = new Users({
       email: librarianEmail,
-      password: generateStrongPassword(),
+      password: password,
       role: process.env.LIBRARIAN_KEY,
       adminId: req.user,
     })
-
+    sendWelcomeEmail(librarianEmail, password, "Librarian");
     await librarian.save();
   }
 
@@ -76,7 +77,7 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     issuePeriod,
     maxBooks,
     fineInterest,
-    librarians: librarian._id,
+    librarian: librarian._id,
   });
   await newLibrary.save();
   res.json(newLibrary);
@@ -128,7 +129,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
       issuePeriod,
       maxBooks,
       fineInterest,
-      librarians: librarian._id,
+      librarian: librarian._id,
     }
   );
 
@@ -138,6 +139,20 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
   res.json(updateLibrary);
 });
 
+const deleteLibrary = AsyncErrorHandler(async (req, res) => {
+  const { libraryId } = req.params;
+  if (!libraryId) {
+    res.status(400).json({ message: "Invalid input data" });
+  }
+
+  const library = await Library.findById(libraryId);
+  if (!library) {
+    res.status(400).json({ message: "Library not found" });
+  }
+
+  const deletedLibrary = await Library.findByIdAndDelete(libraryId);
+  res.json(deletedLibrary);
+});
 
 const createLibrarian = AsyncErrorHandler(async (req, res) => {
   const { name, email } = req.body;
