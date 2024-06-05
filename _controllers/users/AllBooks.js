@@ -7,6 +7,7 @@ import Location from "../../_models/locations/locations.model.js";
 import AsyncErrorHandler from "../../middlewares/AsyncErrorHandler.js";
 import Library from "../../_models/Library/library.model.js";
 import Fine from "../../_models/fine/fine.model.js";
+import Transaction from "../../_models/transaction/transaction.model.js";
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
@@ -138,13 +139,11 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
     bookId,
     libraryId,
     date: Date.now(),
-    deadline: Date.now() + library.issuePeriod * 24 * 60 * 60 * 1000,
+    deadline: new Date(Date.now() + library.issuePeriod * 24 * 60 * 60 * 1000).setHours(0, 0, 0, 0)
   });
   await issue.save();
 
-  location.availableQuantity--;
-  await location.save();
-  res.status(201).json({ message: "Book issued successfully", issue });
+  res.status(201).json({ message: "Book issue request sent successfully to the librarian", issue });
 });
 
 const checkAvailability = AsyncErrorHandler(async (req, res) => {
@@ -318,8 +317,7 @@ const payFine = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-
- if (fine.userId.toString() !== req.user.toString()) {
+  if (fine.userId.toString() !== req.user.toString()) {
     res.status(401).json({ message: "Unauthorized access" });
     return;
   }
@@ -335,18 +333,29 @@ const payFine = AsyncErrorHandler(async (req, res) => {
   }
 
   if (fine.status === "Pending" && fine.category === "Due date exceeded") {
-    res.status(400).json({ message: "Fine not eligible for payment, return the book first" });
+    res
+      .status(400)
+      .json({
+        message: "Fine not eligible for payment, return the book first",
+      });
     return;
   }
-  
+
   issue.status = "fined";
   await issue.save();
 
+  const transaction = new Transaction({
+    fineId: fine._id,
+    amount: fine.amount,
+  });
+  await transaction.save();
+
+  fine.transactionId = transaction._id;
   fine.status = "Completed";
   await fine.save();
+
   res.json({ message: "Fine paid successfully" });
 });
-
 
 export {
   getBookDetails,

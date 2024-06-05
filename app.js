@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./middlewares/connectDB.js";
-
+import "./scripts/fineSchedular.js"
 // Import Routes
 import userRouter from "./_routes/users/users.routes.js";
 import adminRouter from "./_routes/admin/admin.routes.js";

@@ -14,10 +14,12 @@ const locationSchema = new mongoose.Schema({
   totalQuantity: {
     type: Number,
     required: true,
+    min: 0,
   },
   availableQuantity: {
     type: Number,
     required: true,
+    min: 0,
   },
 });
 
