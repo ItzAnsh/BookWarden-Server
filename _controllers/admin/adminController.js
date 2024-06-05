@@ -82,29 +82,34 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
 });
 
 const updateLibrary = AsyncErrorHandler(async (req, res) => {
-  const { libraryId } = req.params;
+  const { id: libraryId } = req.params;
 
   if (!libraryId) {
-    res.status(400);
+    res.status(400).json({ message: "All fields are required" });
   }
 
-  const library = await Library.findById({ _id: mongoose.Types.ObjectId(libraryId) });
+  const library = await Library.findById(libraryId);
   if (!library) {
     res.status(400).json({ message: "Library not found" });
   }
 
   let { name, location, contactNo, contactEmail, maxBooks, issuePeriod, librarianEmail, fineInterest } = req.body;
 
-  let librarian = await Users.findOne({ email: librarianEmail });
-  if (!librarian) {
-    librarian = new Users({
-      email: librarianEmail,
-      password: generateStrongPassword(),
-      role: process.env.LIBRARIAN_KEY,
-      adminId: req.user,
-    })
-
-    await librarian.save();
+  let librarian
+  let librarianId = library.librarian
+  if (librarianEmail) {
+    librarian = await Users.findOne({ email: librarianEmail });
+    if (!librarian) {
+      librarian = new Users({
+        email: librarianEmail,
+        password: generateStrongPassword(),
+        role: process.env.LIBRARIAN_KEY,
+        adminId: req.user,
+      })
+      sendWelcomeEmail(librarianEmail, password, "Librarian");
+      librarianId = librarian._id
+      await librarian.save();
+    }
   }
 
   name = name || library.name;
@@ -116,7 +121,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
   fineInterest = fineInterest || library.fineInterest;
   
   const updateLibrary = await Library.findByIdAndUpdate(
-    { _id: mongoose.Types.ObjectId(libraryId) },
+    libraryId,
     {
       name,
       location,
@@ -127,7 +132,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
       issuePeriod,
       maxBooks,
       fineInterest,
-      librarian: librarian._id,
+      librarian: librarianId,
     }
   );
 
