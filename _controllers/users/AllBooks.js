@@ -265,7 +265,16 @@ const reportLostFine = AsyncErrorHandler(async (req, res) => {
     category: "Lost or damaged",
   });
   await fine.save();
-  res.json({ message: "Fine reported successfully" });
+
+  const location = await Location.findOne({ bookId: issue.bookId._id });
+  if (!location) {
+    res.status(404).json({ message: "Location not found" });
+    return;
+  }
+  location.totalQuantity--;
+  await location.save();
+
+  res.json({ message: "Fine reported successfully", fine });
 });
 
 const getFines = AsyncErrorHandler(async (req, res) => {

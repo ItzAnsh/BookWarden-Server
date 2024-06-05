@@ -577,6 +577,13 @@ const approveReturn = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "Issue not issued" });
     return;
   }
+  const location = await Location.findOne({ bookId: issue.bookId });
+    if (!location) {
+      res.status(400).json({ message: "Location not found" });
+      return;
+    }
+    location.availableQuantity += 1;
+    await location.save();
 });
 
 const getLibraryFines = AsyncErrorHandler(async (req, res) => {
