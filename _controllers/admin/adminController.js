@@ -261,21 +261,6 @@ const loginAdmin = AsyncErrorHandler(async (req, res) => {
 	res.json({ token, message: "Admin logged in successfully" });
 });
 
-const deleteLibrary = AsyncErrorHandler(async (req, res) => {
-	const { libraryId } = req.params;
-
-	const library = await Library.findById(libraryId);
-
-	if (!library) {
-		return res.status(404).json({
-			message: "Library not found",
-		});
-	}
-
-	await library.remove();
-	res.json({ message: "Library deleted successfully" });
-});
-
 export {
 	modifyUser,
 	getAllUsers,
