@@ -1,15 +1,11 @@
 import express from "express";
 // Ashi's Functions
 import {
-  getBookDetails,
-  getBooks,
-  rateBook,
-  issueBookToUser,
-  checkAvailability,
-  requestRenewal,
-  reportLostFine,
-  getFines,
-  payFine,
+	getBookDetails,
+	getBooks,
+	rateBook,
+	issueBookToUser,
+	checkAvailability,
 } from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
@@ -33,10 +29,6 @@ router.post("/login", loginUser);
 router.post("/updatePassword", protect, updatePassword);
 router.get("/getUserIssues", protect, getUserIssues);
 router.post("/checkAvailability", protect, checkAvailability);
-router.post("/requestRenewal", protect, requestRenewal);
-router.post("/reportLostFine", protect, reportLostFine);
-router.get("/getFines", protect, getFines);
-router.post("/payFine", protect, payFine);
 
 //Ashi's Routes
 //Get details of single book
