@@ -158,7 +158,7 @@ const deleteLibrary = AsyncErrorHandler(async (req, res) => {
   }
 //   console.log("sel");
 
-  const library = await Library.findOne(libraryId);
+  const library = await Library.findById(libraryId);
   if (!library) {
     res.status(404).json({ message: "Library not found" });
     return
@@ -290,6 +290,7 @@ const loginAdmin = AsyncErrorHandler(async (req, res) => {
 	});
 	console.log(token);
 	res.json({ token, message: "Admin logged in successfully" });
+  return;
 });
 
 export {
