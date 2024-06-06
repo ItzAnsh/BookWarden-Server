@@ -41,6 +41,14 @@ const bookSchema = new mongoose.Schema({
 	imageURL: {
 		type: String,
 		required: true,
+	},
+	isbn10: {
+		type: String,
+		required: true,
+	},
+	isbn13: {
+		type: String,
+		required: true,
 	}
 });
 
