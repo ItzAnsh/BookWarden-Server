@@ -25,6 +25,22 @@ const getBookDetails = AsyncErrorHandler(async (req, res) => {
   res.json(bookDetails);
 });
 
+const getBookDetailsViaIsbn = AsyncErrorHandler(async (req, res) => {
+  const { isbn } = req.params;
+  if (!isbn) {
+    res.status(400).send("ISBN not found!");
+    return;
+  }
+  const bookDetails = await Book.findOne({
+    $or: [{ isbn10: isbn }, { isbn13: isbn }],
+  });
+  if (!bookDetails) {
+    res.status(404).send("Book not found!");
+    return;
+  }
+  res.json(bookDetails);
+});
+
 //Update book details
 const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
   const { id: bookId } = req.params;
@@ -359,6 +375,7 @@ const payFine = AsyncErrorHandler(async (req, res) => {
 
 export {
   getBookDetails,
+  getBookDetailsViaIsbn,
   modifyBookDetails,
   getBooks,
   rateBook,
