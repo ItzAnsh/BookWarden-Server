@@ -93,16 +93,21 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "Library not found" });
   }
 
+  if (library.adminId.toString() !== req.user.toString()) {
+    res.status(400).json({ message: "You are not authorized to perform this action" });
+    return
+  }
+
   let { name, location, contactNo, contactEmail, maxBooks, issuePeriod, librarianEmail, fineInterest } = req.body;
 
-  let librarian
   let librarianId = library.librarian
   if (librarianEmail) {
-    librarian = await Users.findOne({ email: librarianEmail });
+    let librarian = await Users.findOne({ email: librarianEmail });
     if (!librarian) {
+      const password = generateStrongPassword();
       librarian = new Users({
         email: librarianEmail,
-        password: generateStrongPassword(),
+        password: password,
         role: process.env.LIBRARIAN_KEY,
         adminId: req.user,
       })
@@ -131,7 +136,8 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
       maxBooks,
       fineInterest,
       librarian: librarianId,
-    }
+    },
+    { new: true }
   );
 
   if (!updateLibrary) {
@@ -149,6 +155,11 @@ const deleteLibrary = AsyncErrorHandler(async (req, res) => {
   const library = await Library.findById(libraryId);
   if (!library) {
     res.status(400).json({ message: "Library not found" });
+  }
+
+  if (library.adminId.toString() !== req.user.toString()) {
+    res.status(400).json({ message: "You are not authorized to perform this action" });
+    return
   }
 
   const deletedLibrary = await Library.findByIdAndDelete(libraryId);
