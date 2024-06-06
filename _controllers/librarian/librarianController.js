@@ -196,10 +196,34 @@ const removeBooksFromLibrary = AsyncErrorHandler(async (req, res) => {
   }
 
   const library = await Library.findOne({ librarian: librarianId });
+  if (!library) {
+    res.status(400).json({ message: "Library not found" });
+    return;
+  }
 
-  const location = await Location.findByIdAndDelete(locationId);
+  const location = await Location.findById(locationId);
   if (!location) {
     res.status(404).json({ message: "Location not found" });
+    return;
+  }
+
+  const issues = await Issue.find({ libraryId : library._id, bookId: location.bookId });
+
+  if(issues.length > 0) {
+    res.status(400).json({ message: "Books in library cannot be deleted, they have issues" });
+    return;
+  }
+
+  if (issues.length > 0) {
+    res.status(400).json({ message: "Location is not empty" });
+    return;
+  }
+
+  const deletedLocation = await Location.findByIdAndDelete(locationId);
+
+  if (!deletedLocation) {
+    res.status(404).json({ message: "Location not deleted" });
+    return;
   }
 
   library.totalBooks -= location.totalQuantity;
@@ -214,13 +238,13 @@ const updateBooksInLibrary = AsyncErrorHandler(async (req, res) => {
     res.status(400).send("Book id not found!");
   }
   const library = await Library.findOne({ librarian: librarianId });
-  const location = await Location.findByIdAndUpdate(
-    locationId,
-    { totalQuantity, availableQuantity }
-  );
+  const location = await Location.findByIdAndUpdate(locationId, {
+    totalQuantity,
+    availableQuantity,
+  });
   if (!location) {
     res.status(404).json({ message: "Location not found" });
-    return
+    return;
   }
 
   library.totalBooks += totalQuantity - location.totalQuantity;
