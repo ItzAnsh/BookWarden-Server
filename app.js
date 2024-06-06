@@ -8,7 +8,6 @@ import "./scripts/fineSchedular.js"
 import userRouter from "./_routes/users/users.routes.js";
 import adminRouter from "./_routes/admin/admin.routes.js";
 import librarianRouter from "./_routes/librarian/librarian.routes.js";
-// import libraryRouter from "./_routes/library/library.routes.js";
 
 dotenv.config();
 
@@ -21,7 +20,6 @@ app.use(cors());
 app.use("/api/users", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/librarian", librarianRouter);
-// app.use("/api/library", libraryRouter);
 
 app.get("/", (req, res) => {
 	res.send("API is working fine :)");

@@ -4,6 +4,7 @@ import express from "express";
 import {
 	modifyUser,
 	getAllUsers,
+	getAllLibraries,
 	createLibrary,
 	deleteLibrary,
 	updateLibrary,
@@ -23,6 +24,7 @@ router.get("/", (req, res) => {
 
 router.post("/modifyUser", adminProtect, modifyUser); 
 router.get("/getAllUsers",adminProtect, getAllUsers); 
+router.get("/getAllLibraries", adminProtect, getAllLibraries);
 router.post("/createLibrary",adminProtect, createLibrary);
 router.post("/updateLibrary/:id", adminProtect, updateLibrary); //done
 router.delete("/deleteLibrary/:id", adminProtect, deleteLibrary);
