@@ -65,8 +65,6 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     await librarian.save();
   }
 
-  console.log(librarian);
-
   const newLibrary = new Library({
     name,
     location,
@@ -79,7 +77,6 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     maxBooks,
     fineInterest,
   });
-  console.log(newLibrary);
   await newLibrary.save();
   res.json(newLibrary);
 });
