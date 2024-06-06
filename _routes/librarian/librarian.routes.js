@@ -5,6 +5,7 @@ import {
   getBook,
   createBook,
   addBookToLibrary,
+  addBookToLibraryViaIsbn,
   updateBook,
   deleteBook,
   getAllUsers,
@@ -41,6 +42,7 @@ router.get("/getAllBooks", librarianProtect, getAllBooks);
 router.get("/getBook/:bookId",librarianProtect, getBook);
 router.post("/createBook",librarianProtect, createBook);
 router.post("/addBookToLibrary",librarianProtect, addBookToLibrary);
+router.post("/addBookToLibraryViaIsbn",librarianProtect, addBookToLibraryViaIsbn);
 router.patch("/updateBook/:bookId",librarianProtect, updateBook);
 router.delete("/deleteBook/:bookId",librarianProtect, deleteBook);
 router.get("/getAllUsers",librarianProtect, getAllUsers);

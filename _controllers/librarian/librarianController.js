@@ -96,27 +96,91 @@ const createMultipleBooks = AsyncErrorHandler(async (req, res) => {
 });
 
 const addBookToLibrary = AsyncErrorHandler(async (req, res) => {
-  const { bookId, libraryId, totalQuantity, availableQuantity } = req.body;
-  if (!bookId) {
-    res.status(400);
+  const { bookId, totalQuantity, availableQuantity } = req.body;
+  if (!bookId || !totalQuantity || !availableQuantity) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
   }
   const book = await Book.findById(bookId);
   if (!book) {
-    res.status(400);
+    res.status(404).json({ message: "Book not found" });
+  }
+
+  const library = await Library.findOne({librarian: req.user});
+  if (!library) {
+    res.status(400).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const existingLocation = await Location.findOne({
+    libraryId: library._id,
+    bookId: bookId,
+  });
+  if (existingLocation) {
+    existingLocation.totalQuantity += totalQuantity;
+    existingLocation.availableQuantity += availableQuantity;
+    await existingLocation.save();
+    return res.json({ message: "Existing book found, Location updated", existingLocation});
+    return;
   }
 
   const newLocation = new Location({
-    libraryId: libraryId,
+    libraryId: library._id,
     bookId: bookId,
     totalQuantity,
     availableQuantity,
   });
   await newLocation.save();
 
-  const library = await Library.findById(libraryId);
   library.totalBooks += totalQuantity;
   await library.save();
 
+  res.json(newLocation);
+});
+
+const addBookToLibraryViaIsbn = AsyncErrorHandler(async (req, res) => {
+  const { isbn, totalQuantity, availableQuantity } = req.body;
+  if (!isbn || !totalQuantity || !availableQuantity) {
+    res.status(400).json({ message: "Invalid input data" });
+  }
+  const book = await Book.findOne({
+    $or: [{ isbn10: isbn }, { isbn13: isbn }],
+  });
+
+  if (!book) {
+    res.status(404).json({ message: "Book not found" });
+    return;
+  }
+
+  const library = await Library.findOne({librarian: req.user});
+  if (!library) {
+    res.status(400).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const existingLocation = await Location.findOne({
+    libraryId: library._id,
+    bookId: book._id,
+  });
+  if (existingLocation) {
+    existingLocation.totalQuantity += totalQuantity;
+    existingLocation.availableQuantity += availableQuantity;
+    await existingLocation.save();
+    res.json({ message: "Existing book found, Location updated", existingLocation});
+    return;
+  }
+
+
+  const newLocation = new Location({
+    libraryId: library._id,
+    bookId: book._id,
+    totalQuantity,
+    availableQuantity,
+  });
+  await newLocation.save();
+
+  library.totalBooks += totalQuantity;
+  await library.save();
   res.json(newLocation);
 });
 
@@ -720,6 +784,7 @@ export {
   getBook,
   createBook,
   addBookToLibrary,
+  addBookToLibraryViaIsbn,
   updateBook,
   deleteBook,
   getAllUsers,
