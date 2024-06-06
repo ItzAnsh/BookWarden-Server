@@ -273,6 +273,7 @@ const loginAdmin = AsyncErrorHandler(async (req, res) => {
 	});
 	console.log(token);
 	res.json({ token, message: "Admin logged in successfully" });
+  return;
 });
 
 export {
