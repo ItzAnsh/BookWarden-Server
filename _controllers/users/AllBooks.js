@@ -11,10 +11,10 @@ import Transaction from "../../_models/transaction/transaction.model.js";
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
-  const { id: bookId } = req.params;
+  const { bookId } = req.params;
 
   if (!bookId) {
-    res.status(400);
+    res.status(400).json({ message : "bookId is required"});
     return;
   }
   const bookDetails = await bookDetails.findOne(bookId);

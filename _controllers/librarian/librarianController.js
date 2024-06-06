@@ -191,13 +191,19 @@ const getSpecificUser = AsyncErrorHandler(async (req, res) => {
 	if (!userId) {
 		res.status(400);
 	}
-
-	const user = await User.findOne({ _id: new mongoose.Types.ObjectId(userId) });
-	if (!user) {
-		res.status(400).json({ message: "User not found" });
+	//_id: mongoose.Types.ObjectId(userId)
+	const user = await User.findOne(userId);
+	const responseData = {
+		_id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role === "user" ? user.role : "Role is not user"
 	}
-	res.json(user);
+	
+	res.json(responseData);
 });
+
+
 
 const createGenre = AsyncErrorHandler(async (req, res) => {
 	const { name } = req.body;
@@ -375,7 +381,7 @@ const  getLibraryIssues = AsyncErrorHandler(async (req, res) => {
 		res.status(400).json({ message: "Library not found" });
 		return;
 	}
-
+	
 	const issues = await Issue.find({ libraryId: library._id })
 		.populate("books")
 		.populate("userId");
