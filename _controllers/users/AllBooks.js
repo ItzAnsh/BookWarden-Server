@@ -18,7 +18,6 @@ const getBookDetails = AsyncErrorHandler(async (req, res) => {
     return;
   }
   const bookDetails = await Book.findById(bookId);
-  console.log(bookDetails);
   if (!bookDetails) {
     res.status(404).send("User id not found!");
     return;
