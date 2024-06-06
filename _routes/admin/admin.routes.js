@@ -4,7 +4,6 @@ import express from "express";
 import {
 	modifyUser,
 	getAllUsers,
-	getSpecificUser,
 	createLibrary,
 	deleteLibrary,
 	updateLibrary,
