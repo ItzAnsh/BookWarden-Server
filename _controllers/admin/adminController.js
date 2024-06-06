@@ -35,6 +35,11 @@ const modifyUser = AsyncErrorHandler(async (req, res) => {
 	console.log(updateUser);
 });
 
+const getAllLibraries = AsyncErrorHandler(async (req, res) => {
+  const libraries = await Library.find({adminId : req.user})
+  res.json(libraries)
+})
+
 const createLibrary = AsyncErrorHandler(async (req, res) => {
   const { name, location, contactNo, contactEmail, maxBooks, issuePeriod, librarianEmail, fineInterest } = req.body;
 
@@ -290,6 +295,7 @@ const loginAdmin = AsyncErrorHandler(async (req, res) => {
 export {
 	modifyUser,
 	getAllUsers,
+  getAllLibraries,
 	createLibrary,
 	deleteLibrary,
 	updateLibrary,
