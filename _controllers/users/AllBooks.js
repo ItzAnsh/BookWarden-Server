@@ -11,16 +11,32 @@ import Transaction from "../../_models/transaction/transaction.model.js";
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
-  const { bookId } = req.params;
+  const { id : bookId } = req.params;
 
   if (!bookId) {
     res.status(400).json({ message : "bookId is required"});
     return;
   }
-  const bookDetails = await bookDetails.findOne(bookId);
+  const bookDetails = await Book.findById(bookId);
 
   if (!bookDetails) {
     res.status(404).send("User id not found!");
+    return;
+  }
+  res.json(bookDetails);
+});
+
+const getBookDetailsViaIsbn = AsyncErrorHandler(async (req, res) => {
+  const { isbn } = req.params;
+  if (!isbn) {
+    res.status(400).send("ISBN not found!");
+    return;
+  }
+  const bookDetails = await Book.findOne({
+    $or: [{ isbn10: isbn }, { isbn13: isbn }],
+  });
+  if (!bookDetails) {
+    res.status(404).send("Book not found!");
     return;
   }
   res.json(bookDetails);
@@ -360,6 +376,7 @@ const payFine = AsyncErrorHandler(async (req, res) => {
 
 export {
   getBookDetails,
+  getBookDetailsViaIsbn,
   modifyBookDetails,
   getBooks,
   rateBook,

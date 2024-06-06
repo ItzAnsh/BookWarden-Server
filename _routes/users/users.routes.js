@@ -2,6 +2,7 @@ import express from "express";
 // Ashi's Functions
 import {
 	getBookDetails,
+	getBookDetailsViaIsbn,
 	getBooks,
 	rateBook,
 	issueBookToUser,
@@ -34,6 +35,8 @@ router.post("/checkAvailability", protect, checkAvailability);
 //Get details of single book
 router.get("/bookDetails/:id", protect, getBookDetails); 
 
+//Get details of single book via isbn
+router.get("/bookDetailsViaIsbn/:isbn", protect, getBookDetailsViaIsbn); //done
 //Get all books
 router.get("/getBooks", protect, getBooks); 
 

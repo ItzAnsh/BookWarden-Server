@@ -42,7 +42,7 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
       message: "All fields are required",
     });
   }
-  let librarian = await Users.find({ email: librarianEmail });
+  let librarian = await Users.findOne({ email: librarianEmail, role: process.env.LIBRARIAN_KEY });
   if (!librarian) {
     const password = generateStrongPassword();
     librarian = new Users({
@@ -60,41 +60,52 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     location,
     contactNo,
     contactEmail,
+    librarian: librarian._id,
     totalBooks: 0,
     adminId: req.user,
     issuePeriod,
     maxBooks,
     fineInterest,
-    librarian: librarian._id,
   });
   await newLibrary.save();
   res.json(newLibrary);
 });
 
 const updateLibrary = AsyncErrorHandler(async (req, res) => {
-  const { libraryId } = req.params;
+  const { id: libraryId } = req.params;
 
   if (!libraryId) {
-    res.status(404);
+    res.status(400).json({ message: "All fields are required" });
   }
 
-  const library = await Library.findOne(libraryId);
+  const library = await Library.findById(libraryId);
+
   if (!library) {
     res.status(404).json({ message: "Library not found" });
   }
 
+  if (library.adminId.toString() !== req.user.toString()) {
+    res.status(400).json({ message: "You are not authorized to perform this action" });
+    return
+  }
+
   let { name, location, contactNo, contactEmail, maxBooks, issuePeriod, librarianEmail, fineInterest } = req.body;
 
-  let librarian = await Users.findOne({ email: librarianEmail });
-  if (!librarian) {
-    librarian = new Users({
-      email: librarianEmail,
-      password: generateStrongPassword(),
-      role: process.env.LIBRARIAN_KEY,
-      adminId: req.user,
-    })
-
-    await librarian.save();
+  let librarianId = library.librarian
+  if (librarianEmail) {
+    let librarian = await Users.findOne({ email: librarianEmail });
+    if (!librarian) {
+      const password = generateStrongPassword();
+      librarian = new Users({
+        email: librarianEmail,
+        password: password,
+        role: process.env.LIBRARIAN_KEY,
+        adminId: req.user,
+      })
+      sendWelcomeEmail(librarianEmail, password, "Librarian");
+      librarianId = librarian._id
+      await librarian.save();
+    }
   }
 
   name = name || library.name;
@@ -104,21 +115,21 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
   maxBooks = maxBooks || library.maxBooks;
   issuePeriod = issuePeriod || library.issuePeriod;
   fineInterest = fineInterest || library.fineInterest;
-  //_id: new mongoose.Types.ObjectId(libraryId)
-  const updateLibrary = await Library.findOneAndUpdate(
-    { libraryId },
+  
+  const updateLibrary = await Library.findByIdAndUpdate(
+    libraryId,
+    
     {
       name,
       location,
       contactNo,
       contactEmail,
-      totalBooks: 0,
-      adminId: req.user,
       issuePeriod,
       maxBooks,
       fineInterest,
-      librarian: librarian._id,
-    }
+      librarian: librarianId,
+    },
+    { new: true }
   );
 
   if (!updateLibrary) {
@@ -128,8 +139,9 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
 });
 
 const deleteLibrary = AsyncErrorHandler(async (req, res) => {
-  const { libraryId } = req.params;
 
+  const { id: libraryId } = req.params;
+  
   if (!libraryId) {
     res.status(404);
   }
@@ -140,7 +152,12 @@ const deleteLibrary = AsyncErrorHandler(async (req, res) => {
     res.status(404).json({ message: "Library not found" });
   }
 
-  const deletedLibrary = await Library.findOneAndDelete(libraryId);
+  if (library.adminId.toString() !== req.user.toString()) {
+    res.status(400).json({ message: "You are not authorized to perform this action" });
+    return
+  }
+
+  const deletedLibrary = await Library.findByIdAndDelete(libraryId);
   res.json(deletedLibrary);
 
 });
