@@ -1,7 +1,7 @@
 import express from "express";
 
 // Controller actions
-import { modifyUser, getAllUsers, createLibrary, createLibrarian, createMultipleLibrarians, loginAdmin, registerAdmin, updateLibrary } from "../../_controllers/admin/adminController.js";
+import { modifyUser, getAllUsers, createLibrary, createLibrarian, createMultipleLibrarians, loginAdmin, registerAdmin, updateLibrary, deleteLibrary, getSpecificUser } from "../../_controllers/admin/adminController.js";
 
 import { adminProtect } from "../../middlewares/authMiddleware.js";
 // Router Setup
@@ -12,16 +12,15 @@ router.get("/", (req, res) => {
 });
 
 router.post("/modifyUser", adminProtect, modifyUser); 
-router.get("/getAllUsers",adminProtect, getAllUsers); //done
+router.get("/getAllUsers",adminProtect, getAllUsers); 
+router.get("/getSpecificUser/:id" , adminProtect , getSpecificUser);
 router.post("/createLibrary",adminProtect, createLibrary);
-router.post("/updateLibrary/:id", adminProtect, updateLibrary); //done
-
-router.post("/createLibrarian",adminProtect, createLibrarian);//done
+router.post("/updateLibrary/:id", adminProtect, updateLibrary); 
+router.delete("/deleteLibrary/:id", adminProtect, deleteLibrary);
+router.post("/createLibrarian",adminProtect, createLibrarian);
 router.post("/createMultipleLibrarians",adminProtect, createMultipleLibrarians);
-router.post("/loginAdmin", loginAdmin); //done
-router.post("/registerAdmin", registerAdmin);//done
+router.post("/loginAdmin", loginAdmin); 
+router.post("/registerAdmin", registerAdmin);
 
 
 export default router;
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NTc2NzFlZjgwMWQ2MWY3YWE0YzQ1OCIsImlhdCI6MTcxNzAwNDE2MiwiZXhwIjoxNzE3NjA4OTYyfQ.ldYqf2lNmF0eSHvlBR6PD_VpORWlCr8kn4IFn0tBuwI

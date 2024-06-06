@@ -20,8 +20,9 @@ const getSpecificUser = AsyncErrorHandler(async (req, res) => {
 	if (!userId) {
 		res.status(400);
 	}
+	//_id: mongoose.Types.ObjectId(userId)
 
-	const user = await User.findById({ _id: mongoose.Types.ObjectId(userId) });
+	const user = await User.findOne(userId);
 	res.json(user);
 });
 
@@ -88,7 +89,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
     res.status(400);
   }
 
-  const library = await Library.findById({ _id: mongoose.Types.ObjectId(libraryId) });
+  const library = await Library.findOne(libraryId);
   if (!library) {
     res.status(400).json({ message: "Library not found" });
   }
@@ -114,9 +115,9 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
   maxBooks = maxBooks || library.maxBooks;
   issuePeriod = issuePeriod || library.issuePeriod;
   fineInterest = fineInterest || library.fineInterest;
-  
-  const updateLibrary = await Library.findByIdAndUpdate(
-    { _id: mongoose.Types.ObjectId(libraryId) },
+  //_id: new mongoose.Types.ObjectId(libraryId)
+  const updateLibrary = await Library.findOneAndUpdate(
+    { libraryId },
     {
       name,
       location,
@@ -139,17 +140,20 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
 
 const deleteLibrary = AsyncErrorHandler(async (req, res) => {
   const { libraryId } = req.params;
-  if (!libraryId) {
-    res.status(400).json({ message: "Invalid input data" });
-  }
 
-  const library = await Library.findById(libraryId);
+  if (!libraryId) {
+    res.status(400);
+  }
+  console.log("sel");
+
+  const library = await Library.findOne(libraryId);
   if (!library) {
     res.status(400).json({ message: "Library not found" });
   }
 
-  const deletedLibrary = await Library.findByIdAndDelete(libraryId);
+  const deletedLibrary = await Library.findOneAndDelete(libraryId);
   res.json(deletedLibrary);
+
 });
 
 

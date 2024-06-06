@@ -11,13 +11,13 @@ import Transaction from "../../_models/transaction/transaction.model.js";
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
-  const { bookId } = req.params;
+  const { id: bookId } = req.params;
 
   if (!bookId) {
-    res.status(400).send("Book id not found!");
+    res.status(400);
     return;
   }
-  const bookDetails = await bookDetails.findById(bookId);
+  const bookDetails = await bookDetails.findOne(bookId);
 
   if (!bookDetails) {
     res.status(404).send("User id not found!");

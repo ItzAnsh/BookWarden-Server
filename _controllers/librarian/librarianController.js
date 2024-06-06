@@ -343,7 +343,7 @@ const loginLibrarian = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllIssues = AsyncErrorHandler(async (req, res) => {
-	const issues = await Issue.find().populate("books").populate({
+	const issues = await Issue.find().populate("bookId").populate({
 		path: "userId",
 		select: "-password",
 	});
@@ -351,14 +351,15 @@ const getAllIssues = AsyncErrorHandler(async (req, res) => {
 	res.json(issues);
 });
 
-const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
+const  getLibraryIssues = AsyncErrorHandler(async (req, res) => {
 	const librarianId = req.user;
+
 	if (!librarianId) {
 		res.status(400).json({ message: "Librarian not found" });
 		return;
 	}
 
-	const librarian = await User.findById(librarianId);
+	const librarian = await User.findOne(librarianId);
 	if (!librarian) {
 		res.status(400).json({ message: "Librarian not found" });
 		return;
@@ -369,7 +370,7 @@ const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
 		return;
 	}
 
-	const library = await Library.findOne({ librarian: librarian._id });
+	const library = await Library.findOne({  librarian: librarian._id });
 	if (!library) {
 		res.status(400).json({ message: "Library not found" });
 		return;
@@ -646,6 +647,10 @@ const revokeFine = AsyncErrorHandler(async (req, res) => {
 		res.status(400).json({ message: "Fine not found" });
 		return;
 	}
+	// console.log("fine.issueId:", fine.issueId);
+    // console.log("fine.issueId.libraryId:", fine.issueId.libraryId);
+    // console.log("fine.issueId.libraryId.librarian:", fine.issueId.libraryId.librarian);
+    // console.log("req.user:", req.user);
 
 	if (fine.issueId.libraryId.librarian.toString() !== req.user.toString()) {
 		res.status(401).json({ message: "Unauthorized access" });
