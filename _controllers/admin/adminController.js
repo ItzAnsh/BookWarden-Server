@@ -52,7 +52,7 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
       message: "All fields are required",
     });
   }
-  let librarian = await Users.find({ email: librarianEmail });
+  let librarian = await Users.findOne({ email: librarianEmail, role: process.env.LIBRARIAN_KEY });
   if (!librarian) {
     const password = generateStrongPassword();
     librarian = new Users({
@@ -70,12 +70,12 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     location,
     contactNo,
     contactEmail,
+    librarian: librarian._id,
     totalBooks: 0,
     adminId: req.user,
     issuePeriod,
     maxBooks,
     fineInterest,
-    librarian: librarian._id,
   });
   await newLibrary.save();
   res.json(newLibrary);
@@ -127,8 +127,6 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
       location,
       contactNo,
       contactEmail,
-      totalBooks: 0,
-      adminId: req.user,
       issuePeriod,
       maxBooks,
       fineInterest,
@@ -143,7 +141,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
 });
 
 const deleteLibrary = AsyncErrorHandler(async (req, res) => {
-  const { libraryId } = req.params;
+  const { id: libraryId } = req.params;
   if (!libraryId) {
     res.status(400).json({ message: "Invalid input data" });
   }
