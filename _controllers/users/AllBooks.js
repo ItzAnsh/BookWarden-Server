@@ -14,10 +14,11 @@ const getBookDetails = AsyncErrorHandler(async (req, res) => {
   const { id : bookId } = req.params;
 
   if (!bookId) {
-    res.status(400).send("Book id not found!");
+    res.status(400).json({ message : "bookId is required"});
     return;
   }
   const bookDetails = await Book.findById(bookId);
+
   if (!bookDetails) {
     res.status(404).send("User id not found!");
     return;

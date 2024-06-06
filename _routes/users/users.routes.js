@@ -33,23 +33,21 @@ router.post("/checkAvailability", protect, checkAvailability);
 
 //Ashi's Routes
 //Get details of single book
-router.get("/bookDetails/:id", protect, getBookDetails); //done
+router.get("/bookDetails/:id", protect, getBookDetails); 
 
 //Get details of single book via isbn
 router.get("/bookDetailsViaIsbn/:isbn", protect, getBookDetailsViaIsbn); //done
 //Get all books
-router.get("/getBooks", protect, getBooks); //done
+router.get("/getBooks", protect, getBooks); 
 
 //Rating of single book
-router.post("/rateBook/:id", protect, rateBook); //p
+router.post("/rateBook/:id", protect, rateBook); 
 
 //Issue book to user
-router.post("/issueBook", protect, issueBookToUser); //done
+router.post("/issueBook", protect, issueBookToUser); 
 
 //Fine for lost book
 router.post("/payFineForLostBook", protect, payFineForLostBook);
-
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NTgwN2YyN2NiZGFlMzRhZmNhNWE2NiIsImlhdCI6MTcxNzA0ODUwNiwiZXhwIjoxNzE3NjUzMzA2fQ.sneJPD2KxJWY3QTho2lzPoGFZwNTKmhjh_9ZjBcK2ko
 
 //Req for fine payment
 router.post("/requestFinePayment", protect, requestFinePaymentForOverdueBook);

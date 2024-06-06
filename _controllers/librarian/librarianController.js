@@ -331,6 +331,7 @@ const getSpecificUser = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "User not found" });
   }
   res.json(user);
+
 });
 
 const createGenre = AsyncErrorHandler(async (req, res) => {
@@ -514,6 +515,7 @@ const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
     .populate("userId");
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
+
 });
 
 const approveIssue = AsyncErrorHandler(async (req, res) => {

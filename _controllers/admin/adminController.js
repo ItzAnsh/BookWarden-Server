@@ -15,21 +15,11 @@ const getAllUsers = AsyncErrorHandler(async (req, res) => {
 	res.json(users);
 });
 
-const getSpecificUser = AsyncErrorHandler(async (req, res) => {
-	const { userId } = req.params;
-	if (!userId) {
-		res.status(400);
-	}
-
-	const user = await User.findById({ _id: mongoose.Types.ObjectId(userId) });
-	res.json(user);
-});
-
 const modifyUser = AsyncErrorHandler(async (req, res) => {
 	const { userId, role } = req.body;
 
 	if (!userId || !role) {
-		res.status(400);
+		res.status(404);
 	}
 
 	if (role !== "librarian" || role !== "user") {
@@ -48,7 +38,7 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
   const { name, location, contactNo, contactEmail, maxBooks, issuePeriod, librarianEmail, fineInterest } = req.body;
 
   if (!name || !location || !contactNo || !contactEmail || !maxBooks || !issuePeriod || !librarianEmail || !fineInterest) {
-    res.status(400).json({
+    res.status(404).json({
       message: "All fields are required",
     });
   }
@@ -89,8 +79,9 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
   }
 
   const library = await Library.findById(libraryId);
+
   if (!library) {
-    res.status(400).json({ message: "Library not found" });
+    res.status(404).json({ message: "Library not found" });
   }
 
   if (library.adminId.toString() !== req.user.toString()) {
@@ -127,6 +118,7 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
   
   const updateLibrary = await Library.findByIdAndUpdate(
     libraryId,
+    
     {
       name,
       location,
@@ -147,14 +139,17 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
 });
 
 const deleteLibrary = AsyncErrorHandler(async (req, res) => {
-  const { id: libraryId } = req.params;
-  if (!libraryId) {
-    res.status(400).json({ message: "Invalid input data" });
-  }
 
-  const library = await Library.findById(libraryId);
+  const { id: libraryId } = req.params;
+  
+  if (!libraryId) {
+    res.status(404);
+  }
+//   console.log("sel");
+
+  const library = await Library.findOne(libraryId);
   if (!library) {
-    res.status(400).json({ message: "Library not found" });
+    res.status(404).json({ message: "Library not found" });
   }
 
   if (library.adminId.toString() !== req.user.toString()) {
@@ -164,6 +159,7 @@ const deleteLibrary = AsyncErrorHandler(async (req, res) => {
 
   const deletedLibrary = await Library.findByIdAndDelete(libraryId);
   res.json(deletedLibrary);
+
 });
 
 
@@ -171,7 +167,7 @@ const createLibrarian = AsyncErrorHandler(async (req, res) => {
 	const { name, email } = req.body;
 
 	if (!name || !email) {
-		res.status(400).json({
+		res.status(404).json({
 			message: "All fields are required",
 		});
 	}
@@ -196,7 +192,7 @@ const createLibrarian = AsyncErrorHandler(async (req, res) => {
 const createMultipleLibrarians = AsyncErrorHandler(async (req, res) => {
 	const { librarians } = req.body;
 	if (!librarians || !Array.isArray(librarians)) {
-		return res.status(400).json({ message: "Invalid input data" });
+		return res.status(404).json({ message: "Invalid input data" });
 	}
 	const createdLibrarians = [];
 	const emailContent = [];
@@ -226,7 +222,7 @@ const createMultipleLibrarians = AsyncErrorHandler(async (req, res) => {
 const registerAdmin = AsyncErrorHandler(async (req, res) => {
 	const { name, email, password } = req.body;
 	if (!name || !email || !password) {
-		res.status(400).json({
+		res.status(404).json({
 			message: "All fields are required",
 		});
 	}
@@ -278,7 +274,6 @@ const loginAdmin = AsyncErrorHandler(async (req, res) => {
 export {
 	modifyUser,
 	getAllUsers,
-	getSpecificUser,
 	createLibrary,
 	deleteLibrary,
 	updateLibrary,
