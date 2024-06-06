@@ -125,7 +125,7 @@ const payFineForLostBook = async (req, res) => {
 
 const requestFinePaymentForOverdueBook = async (req, res) => {
     const { issueId } = req.body;
-    const issue = await Issue.findById(issueId);
+    const issue = await Issue.findOne(issueId);
     if (!issue) {
         return res.status(404).send("Issue not found!");
     }
