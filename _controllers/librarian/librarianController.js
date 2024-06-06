@@ -544,7 +544,7 @@ const approveIssue = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  if (issue.libraryId._id.toString() !== req.user) {
+  if (issue.libraryId.librarian.toString() !== req.user.toString()) {
     res.status(400).json({ message: "Not authorized, This is not your issue" });
     return;
   }
