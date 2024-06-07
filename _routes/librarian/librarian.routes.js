@@ -1,6 +1,6 @@
 import express from "express";
-import mongoose from "mongoose";
 import {
+  getLibraryDetails,
   getAllBooks,
   getBook,
   createBook,
@@ -40,6 +40,7 @@ router.get("/", (req, res) => {
   res.send("Test API Works Fine");
 });
 
+router.get("/getLibraryDetails",librarianProtect, getLibraryDetails);
 router.get("/getAllBooks", librarianProtect, getAllBooks);
 router.get("/getBook/:bookId",librarianProtect, getBook);
 router.post("/createBook",librarianProtect, createBook);
