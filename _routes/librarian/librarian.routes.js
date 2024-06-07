@@ -16,6 +16,7 @@ import {
   approveIssue,
   rejectIssue,
   getSpecificUser,
+  getSpecificIssue,
   createGenre,
   createUser,
   createMultipleUser,
@@ -54,6 +55,7 @@ router.patch("/updateBook/:bookId",librarianProtect, updateBook);
 router.delete("/deleteBook/:bookId",librarianProtect, deleteBook);
 router.get("/getAllUsers",librarianProtect, getAllUsers);
 router.get("/getSpecificUser/:userId",librarianProtect, getSpecificUser);
+router.get("/getSpecificIssue/:issueId",librarianProtect, getSpecificIssue);
 router.get("/getAllIssues",librarianProtect, getAllIssues);
 router.get("/getLibraryIssues",librarianProtect, getLibraryIssues);
 router.patch("/approveIssue",librarianProtect, approveIssue);
