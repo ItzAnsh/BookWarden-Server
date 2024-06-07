@@ -28,7 +28,9 @@ import {
   getLibraryFines,
   revokeFine,
   updateFine,
-  approveFinePaymentRequest
+  approveFinePaymentRequest,
+  getRequests,
+  requestBooksToAdmin
 } from "../../_controllers/librarian/librarianController.js";
 
 import { librarianProtect } from "../../middlewares/authMiddleware.js";
@@ -69,5 +71,7 @@ router.get("/getLibraryFines",librarianProtect, getLibraryFines);
 router.patch("/revokeFine",librarianProtect, revokeFine);
 router.patch("/updateFine",librarianProtect, updateFine);
 router.post("/approveFinePaymentRequest", librarianProtect, approveFinePaymentRequest);
+router.get("/getRequests",librarianProtect, getRequests);
+router.post("/requestBooksToAdmin",librarianProtect, requestBooksToAdmin);  
 
 export default router;

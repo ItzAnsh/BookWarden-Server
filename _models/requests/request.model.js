@@ -15,6 +15,11 @@ const requestSchema = new mongoose.Schema({
         ref : "users",
         required : true
     },
+    adminId : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "users",
+        required : true
+    },
     libraryId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "libraries",
@@ -33,8 +38,8 @@ const requestSchema = new mongoose.Schema({
     },
     status : {
         type : String,
-        enum : ["Pending", "Approved", "Rejected", "Completed"],
-        default : "Pending",
+        enum : ["Requested", "Approved", "Rejected", "Completed", "Cancelled"],
+        default : "Requested",
         required : true
     }
 })
