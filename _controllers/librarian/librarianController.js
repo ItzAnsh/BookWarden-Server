@@ -669,11 +669,11 @@ const rejectIssue = AsyncErrorHandler(async (req, res) => {
 const getSpecificIssue = AsyncErrorHandler(async (req, res) => {
   const { issueId } = req.params;
   if (!issueId) {
-    res.status(400);
+    res.status(400).json({ message: "Invalid input data" });
     return;
   }
 
-  const issue = await Issue.findById(issueId);
+  const issue = await Issue.findById(issueId).populate("bookId").populate("userId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
