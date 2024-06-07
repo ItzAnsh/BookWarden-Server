@@ -19,6 +19,10 @@ import {
   payFineForLostBook,
   requestFinePaymentForOverdueBook,
   payFineForOverdueBook,
+  createPrefrenceList,
+  addToPrefrenceList,
+  getPrefrenceList,
+  removeFromPrefrenceList,
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
@@ -32,6 +36,10 @@ router.post("/updatePassword", protect, updatePassword);
 router.get("/getUserIssues", protect, getUserIssues);
 router.post("/checkAvailability", protect, checkAvailability);
 router.post("/reportLost", protect, reportLost);
+router.post("/createPrefrenceList", protect, createPrefrenceList);
+router.post("/addToPrefrenceList", protect, addToPrefrenceList);
+router.get("/getPrefrenceList", protect, getPrefrenceList);
+router.post("/removeFromPrefrenceList", protect, removeFromPrefrenceList);
 
 //Ashi's Routes
 //Get details of single book

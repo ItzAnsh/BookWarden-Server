@@ -4,9 +4,10 @@ import jwt from "jsonwebtoken";
 import Issue from "../../_models/Issue/issue.model.js";
 import Book from "../../_models/books/book.model.js";
 import Fine from "../../_models/fine/fine.model.js";
+import Prefrence from "../../_models/prefrences/prefrence.model.js";
+import Genre from "../../_models/books/genre.model.js";
 
 const getUserDetails = AsyncErrorHandler(async (req, res) => {
-
   const id = req.user;
   if (!id) {
     res.status(400).json({ message: "Invalid user" });
@@ -19,16 +20,18 @@ const getUserDetails = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issues = await Issue.find({ userId: user._id }).populate("bookId").populate("libraryId");
-  if(!issues){
-	res.status(404).json({message : "Issues not found"})
-	return
+  const issues = await Issue.find({ userId: user._id })
+    .populate("bookId")
+    .populate("libraryId");
+  if (!issues) {
+    res.status(404).json({ message: "Issues not found" });
+    return;
   }
 
   const fines = await Fine.find({ userId: user._id });
-  if(!fines){
-	res.status(404).json({message : "Fines not found"})
-	return
+  if (!fines) {
+    res.status(404).json({ message: "Fines not found" });
+    return;
   }
   res.json({ user, issues, fines });
 });
@@ -193,6 +196,114 @@ const calculateDaysOverdue = (returnDate) => {
   return Math.max(0, diffInDays);
 };
 
+const createPrefrenceList = AsyncErrorHandler(async (req, res) => {
+  const userId = req.user;
+  if (!userId) {
+    return res.status(400).send({ message: "Invalid input data!" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).send("User not found!");
+  }
+
+  const existingPrefrenceList = await Prefrence.findOne({ userId });
+  if (existingPrefrenceList) {
+	return res.status(400).send({ message: "Prefrence list already exists!" });
+  }
+
+  const prefrenceList = new Prefrence({
+    userId,
+    genres: [],
+  });
+  await prefrenceList.save();
+  res.json({ message: "Prefrence list created successfully.", prefrenceList });
+});
+
+const addToPrefrenceList = AsyncErrorHandler(async (req, res) => {
+  const userId = req.user;
+  const { genres } = req.body;
+  if (!userId) {
+    return res.status(400).send({ message: "Invalid input data!" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).send({ message: "User not found!" });
+  }
+
+  const prefrenceList = await Prefrence.findOne({ userId });
+  if (!prefrenceList) {
+    return res.status(404).send({ message: "Prefrence list not found!" });
+  }
+
+  for (const genreId of genres) {
+    const genre = await Genre.findById(genreId);
+    if (!genre) {
+      console.log("Genre not found:", genreId);
+      continue;
+    }
+
+    prefrenceList.genres.push(genre);
+  }
+
+  await prefrenceList.save();
+  res.json({
+    message: "Genre added to prefrence list successfully.",
+    prefrenceList,
+  });
+});
+
+const getPrefrenceList = AsyncErrorHandler(async (req, res) => {
+  const userId = req.user;
+  if (!userId) {
+    return res.status(400).send({ message: "Invalid input data!" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).send({ message: "User not found!" });
+  }
+
+  const prefrenceList = await Prefrence.findOne({ userId });
+  if (!prefrenceList) {
+    return res.status(404).send({ message: "Prefrence list not found!" });
+  }
+
+  res.json({ prefrenceList });
+});
+
+const removeFromPrefrenceList = AsyncErrorHandler(async (req, res) => {
+  const userId = req.user;
+  const { genres } = req.body;
+  if (!userId) {
+    return res.status(400).send({ message: "Invalid input data!" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).send({ message: "User not found!" });
+  }
+
+  const prefrenceList = await Prefrence.findOne({ userId });
+  if (!prefrenceList) {
+    return res.status(404).send({ message: "Prefrence list not found!" });
+  }
+
+  for (const genreId of genres) {
+    const genre = await Genre.findById(genreId);
+    if (!genre) {
+      console.log("Genre not found:", genreId);
+    }
+  }
+
+  await prefrenceList.save();
+  res.json({
+    message: "Genre removed from prefrence list successfully.",
+    prefrenceList,
+  });
+});
+
 export {
   getUserDetails,
   loginUser,
@@ -201,4 +312,8 @@ export {
   payFineForLostBook,
   requestFinePaymentForOverdueBook,
   payFineForOverdueBook,
+  createPrefrenceList,
+  addToPrefrenceList,
+  getPrefrenceList,
+  removeFromPrefrenceList,
 };
