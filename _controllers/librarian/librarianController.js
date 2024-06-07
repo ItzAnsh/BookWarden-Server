@@ -17,43 +17,51 @@ import { json } from "express";
 
 const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
   const librarianId = req.user;
-  if (!librarianId){
-    res.status(400).json({message :"Invalid Input data"})
+  if (!librarianId) {
+    res.status(400).json({ message: "Invalid Input data" });
     return;
   }
 
-  const librarian = await User.findById(librarianId);
-  if(!librarian){
-    res.status(404).json({message : "Librarian not found"})
-    return
+  const librarian = await User.findById(librarianId).select("-password");
+  if (!librarian) {
+    res.status(404).json({ message: "Librarian not found" });
+    return;
   }
 
-  const library = await Library.findOne({librarian : librarian._id})
-  if(!library){
-    res.status(404).json({message : "Library not found"})
-    return
+  const library = await Library.findOne({ librarian: librarian._id });
+  if (!library) {
+    res.status(404).json({ message: "Library not found" });
+    return;
   }
 
-  const books = await Location.find({libraryId : library._id}).populate("bookId").select("-libraryId")
-  if(!books){
-    res.status(404).json({message : "Books not found"})
-    return
+  const books = await Location.find({ libraryId: library._id })
+    .populate("bookId")
+    .select("-libraryId");
+  if (!books) {
+    res.status(404).json({ message: "Books not found" });
+    return;
   }
 
-  const issues = await Issue.find({libraryId : library._id}).populate("bookId").select("-libraryId").populate("userId")
-  if(!issues){
-    res.status(404).json({message : "Issues not found"})
-    return
+  const issues = await Issue.find({ libraryId: library._id })
+    .populate("bookId")
+    .select("-libraryId")
+    .populate("userId");
+  if (!issues) {
+    res.status(404).json({ message: "Issues not found" });
+    return;
   }
 
-  const fines = await Fine.find({libraryId : library._id}).populate("issueId").populate("issueId.bookId").populate("userId")
-  if(!fines){
-    res.status(404).json({message : "Fines not found"})
-    return
+  const fines = await Fine.find({ libraryId: library._id })
+    .populate("issueId")
+    .populate("issueId.bookId")
+    .populate("userId");
+  if (!fines) {
+    res.status(404).json({ message: "Fines not found" });
+    return;
   }
-
-  res.json({library, books, issues, fines})
-})
+  library.librarian = librarian;
+  res.json({ library, books, issues, fines });
+});
 
 const getAllBooks = AsyncErrorHandler(async (req, res) => {
   const books = await Book.find();
@@ -64,13 +72,13 @@ const getBook = AsyncErrorHandler(async (req, res) => {
   const { bookId } = req.params;
   if (!bookId) {
     res.status(400).json({ message: "Invalid input data" });
-    return
+    return;
   }
 
   const book = await Book.findOne({ _id: new mongoose.Types.ObjectId(bookId) });
   if (!book) {
     res.status(404).json({ message: "Book not found" });
-    return
+    return;
   }
 
   res.json(book);
@@ -251,10 +259,17 @@ const removeBooksFromLibrary = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issues = await Issue.find({ libraryId : library._id, bookId: location.bookId });
+  const issues = await Issue.find({
+    libraryId: library._id,
+    bookId: location.bookId,
+  });
 
-  if(issues.length > 0) {
-    res.status(400).json({ message: "Books in library cannot be deleted, they have issues" });
+  if (issues.length > 0) {
+    res
+      .status(400)
+      .json({
+        message: "Books in library cannot be deleted, they have issues",
+      });
     return;
   }
 
@@ -568,7 +583,6 @@ const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
     .populate("userId");
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
-
 });
 
 const approveIssue = AsyncErrorHandler(async (req, res) => {
@@ -770,7 +784,9 @@ const approveReturn = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issue = await Issue.findById(issueId).populate("bookId").populate("userId");
+  const issue = await Issue.findById(issueId)
+    .populate("bookId")
+    .populate("userId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
