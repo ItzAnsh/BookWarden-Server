@@ -71,20 +71,28 @@ const createLibrary = AsyncErrorHandler(async (req, res) => {
     });
     return;
   }
+  
+
   let librarian = await Users.findOne({
-    email: librarianEmail,
+    email: librarianEmail.toLowerCase(),
     role: process.env.LIBRARIAN_KEY,
   });
   if (!librarian) {
     const password = generateStrongPassword();
     librarian = new Users({
-      email: librarianEmail,
+      email: librarianEmail.toLowerCase(),
       password: password,
       role: process.env.LIBRARIAN_KEY,
       adminId: req.user,
     });
-    sendWelcomeEmail(librarianEmail, password, "Librarian");
+    sendWelcomeEmail(librarianEmail.toLowerCase(), password, "Librarian");
     await librarian.save();
+  }else{
+    const library = await Library.findOne({librarian:librarian._id})
+    if(library){
+      res.status(400).json({message:"Librarian already exists"})
+      return;
+    }
   }
 
   const newLibrary = new Library({
@@ -138,16 +146,16 @@ const updateLibrary = AsyncErrorHandler(async (req, res) => {
 
   let librarianId = library.librarian;
   if (librarianEmail) {
-    let librarian = await Users.findOne({ email: librarianEmail });
+    let librarian = await Users.findOne({ email: librarianEmail.toLowerCase() });
     if (!librarian) {
       const password = generateStrongPassword();
       librarian = new Users({
-        email: librarianEmail,
+        email: librarianEmail.toLowerCase(),
         password: password,
         role: process.env.LIBRARIAN_KEY,
         adminId: req.user,
       });
-      sendWelcomeEmail(librarianEmail, password, "Librarian");
+      sendWelcomeEmail(librarianEmail.toLowerCase(), password, "Librarian");
       librarianId = librarian._id;
       await librarian.save();
     }
