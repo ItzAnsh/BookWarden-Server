@@ -7,11 +7,12 @@ import {
 	rateBook,
 	issueBookToUser,
 	checkAvailability,
+  reportLost
 } from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
 import {
-  getUser,
+  getUserDetails,
   loginUser,
   updatePassword,
   getUserIssues,
@@ -25,11 +26,12 @@ import { protect } from "../../middlewares/authMiddleware.js";
 const router = express.Router();
 
 //Ashu's Routes
-router.get("/", protect, getUser);
+router.get("/", protect, getUserDetails);
 router.post("/login", loginUser);
 router.post("/updatePassword", protect, updatePassword);
 router.get("/getUserIssues", protect, getUserIssues);
 router.post("/checkAvailability", protect, checkAvailability);
+router.post("/reportLost", protect, reportLost);
 
 //Ashi's Routes
 //Get details of single book

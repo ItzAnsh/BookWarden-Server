@@ -36,7 +36,10 @@ const modifyUser = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllLibraries = AsyncErrorHandler(async (req, res) => {
-  const libraries = await Library.find({adminId : req.user})
+  const libraries = await Library.find({adminId : req.user}).populate({
+    path : "librarian",
+    select : "-password"
+  })
   res.json(libraries)
 })
 

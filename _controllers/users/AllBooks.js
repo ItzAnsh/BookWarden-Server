@@ -244,7 +244,7 @@ const requestRenewal = AsyncErrorHandler(async (req, res) => {
   res.json({ message: "Renewal requested successfully" });
 });
 
-const reportLostFine = AsyncErrorHandler(async (req, res) => {
+const reportLost = AsyncErrorHandler(async (req, res) => {
   const { issueId } = req.body;
   if (!issueId) {
     res.status(400).json({ message: "Invalid input data" });
@@ -278,6 +278,7 @@ const reportLostFine = AsyncErrorHandler(async (req, res) => {
     amount: issue.bookId.price,
     status: "Pending",
     category: "Lost or damaged",
+    interest: issue.libraryId.fineInterest,
   });
   await fine.save();
 
@@ -384,7 +385,7 @@ export {
   checkAvailability,
   getUserIssues,
   requestRenewal,
-  reportLostFine,
+  reportLost,
   getFines,
   payFine,
 };
