@@ -16,6 +16,7 @@ import Location from "../../_models/locations/locations.model.js";
 import Fine from "../../_models/fine/fine.model.js";
 import { json } from "express";
 import Request from "../../_models/requests/request.model.js";
+import Prefrence from "../../_models/prefrences/prefrence.model.js";
 
 const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
   const librarianId = req.user;
@@ -267,11 +268,9 @@ const removeBooksFromLibrary = AsyncErrorHandler(async (req, res) => {
   });
 
   if (issues.length > 0) {
-    res
-      .status(400)
-      .json({
-        message: "Books in library cannot be deleted, they have issues",
-      });
+    res.status(400).json({
+      message: "Books in library cannot be deleted, they have issues",
+    });
     return;
   }
 
@@ -404,6 +403,13 @@ const createGenre = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({ message: "All fields are required" });
     return;
   }
+
+  const existingGenre = await Genre.findOne({ name });
+  if (existingGenre) {
+    res.status(400).json({ message: "Genre already exists" });
+    return;
+  }
+
   const newGenre = new Genre({ name });
   await newGenre.save();
   res.json(newGenre);
@@ -450,6 +456,12 @@ const createUser = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
+  const prefrenceList = new Prefrence({
+    userId: user._id,
+    genres: [],
+  });
+  await prefrenceList.save();
+
   sendWelcomeEmail(email, password, name);
   res.json({ user, password });
 });
@@ -476,6 +488,7 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
 
   const createdUsers = [];
   const emailContent = [];
+  const prefrenceLists = [];
 
   for (const user of users) {
     const existingUser = await User.findOne({ email });
@@ -506,11 +519,13 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
       name,
     });
 
-    createdUsers.push(newUser);
-    emailContent.push({ email, password, name });
+    prefrenceLists.push({
+      userId: user._id,
+      genres: [],
+    });
   }
   await User.insertMany(createdUsers);
-
+  await Prefrence.insertMany(prefrenceLists);
   for (const email of emailContent) {
     sendWelcomeEmail(email.email, email.password, email.name);
   }
@@ -673,7 +688,9 @@ const getSpecificIssue = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issue = await Issue.findById(issueId).populate("bookId").populate("userId");
+  const issue = await Issue.findById(issueId)
+    .populate("bookId")
+    .populate("userId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
@@ -925,7 +942,10 @@ const approveFinePaymentRequest = async (req, res) => {
 
 const getRequests = AsyncErrorHandler(async (req, res) => {
   const librarianId = req.user;
-  const requests = await Request.find({librarianId}).populate("bookId").populate("libraryId").populate("librarianId");
+  const requests = await Request.find({ librarianId })
+    .populate("bookId")
+    .populate("libraryId")
+    .populate("librarianId");
   res.json(requests);
 });
 
@@ -969,7 +989,7 @@ const requestBooksToAdmin = AsyncErrorHandler(async (req, res) => {
   request.bookId = book;
   sendRequestStatusEmail(librarian.email, request);
   res.json(request);
-})
+});
 
 export {
   getLibraryDetails,
@@ -1003,5 +1023,5 @@ export {
   updateFine,
   approveFinePaymentRequest,
   getRequests,
-  requestBooksToAdmin
+  requestBooksToAdmin,
 };
