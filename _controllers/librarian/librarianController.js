@@ -6,6 +6,7 @@ import generateStrongPassword from "../../lib/generatePassword.js";
 import {
   sendWelcomeEmail,
   sendIssueStatusEmail,
+  sendRequestStatusEmail,
 } from "../../lib/nodemailer.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -14,6 +15,7 @@ import Library from "../../_models/Library/library.model.js";
 import Location from "../../_models/locations/locations.model.js";
 import Fine from "../../_models/fine/fine.model.js";
 import { json } from "express";
+import Request from "../../_models/requests/request.model.js";
 
 const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
   const librarianId = req.user;
@@ -921,6 +923,54 @@ const approveFinePaymentRequest = async (req, res) => {
   res.json({ message: `Fine payment request approved successfully.` });
 };
 
+const getRequests = AsyncErrorHandler(async (req, res) => {
+  const librarianId = req.user;
+  const requests = await Request.find({librarianId}).populate("bookId").populate("libraryId").populate("librarianId");
+  res.json(requests);
+});
+
+const requestBooksToAdmin = AsyncErrorHandler(async (req, res) => {
+  const { bookId, quantity } = req.body;
+  const librarianId = req.user;
+
+  if (!bookId || !quantity || !librarianId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const book = await Book.findById(bookId);
+  if (!book) {
+    res.status(404).json({ message: "Book not found" });
+    return;
+  }
+
+  const librarian = await User.findById(librarianId);
+  if (!librarian) {
+    res.status(404).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const library = await Library.findOne({ librarian: librarianId });
+  if (!library) {
+    res.status(404).json({ message: "Library not found" });
+    return;
+  }
+
+  const request = new Request({
+    bookId,
+    quantity,
+    libraryId: library._id,
+    adminId: library.adminId,
+    librarianId,
+  });
+
+  await request.save();
+  request.librarianId = librarian;
+  request.bookId = book;
+  sendRequestStatusEmail(librarian.email, request);
+  res.json(request);
+})
+
 export {
   getLibraryDetails,
   getAllBooks,
@@ -952,4 +1002,6 @@ export {
   revokeFine,
   updateFine,
   approveFinePaymentRequest,
+  getRequests,
+  requestBooksToAdmin
 };
