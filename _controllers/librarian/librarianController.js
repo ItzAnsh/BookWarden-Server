@@ -689,8 +689,17 @@ const getSpecificIssue = AsyncErrorHandler(async (req, res) => {
   }
 
   const issue = await Issue.findById(issueId)
-    .populate("bookId")
-    .populate("userId");
+    .populate({
+      path: "bookId",
+      populate: {
+        path: "genre",
+      },
+    })
+    .populate({
+      path: "userId",
+      select: "-password",
+    })
+    .populate("libraryId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
