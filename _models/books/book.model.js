@@ -4,6 +4,7 @@ const bookSchema = new mongoose.Schema({
 	title: {
 		type: String,
 		required: true,
+        index: true
 	},
 	author: {
 		type: String,
@@ -20,14 +21,6 @@ const bookSchema = new mongoose.Schema({
 	genre: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "genres",
-		required: true,
-	},
-	totalQuantity: {
-		type: Number,
-		required: true,
-	},
-	availableQuantity: {
-		type: Number,
 		required: true,
 	},
 	releasDate: {
@@ -49,6 +42,14 @@ const bookSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	isbn10: {
+		type: String,
+		required: true,
+	},
+	isbn13: {
+		type: String,
+		required: true,
+	}
 });
 
 const Book = mongoose.models["books"] || mongoose.model("books", bookSchema);

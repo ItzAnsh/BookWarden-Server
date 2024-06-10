@@ -1,9 +1,9 @@
 import mongoose from "mongoose"
 
-const transactionSchema = new mongoose.Schema[{
+const transactionSchema = new mongoose.Schema({
     fineId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : "Fine",
+        ref : "fines",
         required: true
     },
     amount: {
@@ -14,8 +14,8 @@ const transactionSchema = new mongoose.Schema[{
         type: Date,
         default: Date.now
     }
-}]
+})
 
-const Transaction = mongoose.model("transaction",transactionSchema);
+const Transaction = mongoose.model("transactions",transactionSchema);
 
 export default Transaction;

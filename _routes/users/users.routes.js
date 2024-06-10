@@ -1,45 +1,68 @@
 import express from "express";
 // Ashi's Functions
 import {
-	createBook,
 	getBookDetails,
-	modifyBookDetails,
+	getBookDetailsViaIsbn,
 	getBooks,
 	rateBook,
 	issueBookToUser,
+	checkAvailability,
+  reportLost
 } from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
 import {
-	getUser,
-	loginUser,
-	updatePassword,
+  getUserDetails,
+  loginUser,
+  updatePassword,
+  getUserIssues,
+  payFineForLostBook,
+  requestFinePaymentForOverdueBook,
+  payFineForOverdueBook,
+  createPrefrenceList,
+  addToPrefrenceList,
+  getPrefrenceList,
+  removeFromPrefrenceList,
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
-import Book from "../../_models/books/book.model.js";
 
 const router = express.Router();
 
 //Ashu's Routes
-router.get("/", protect, getUser);
+router.get("/", protect, getUserDetails);
 router.post("/login", loginUser);
 router.post("/updatePassword", protect, updatePassword);
+router.get("/getUserIssues", protect, getUserIssues);
+router.post("/checkAvailability", protect, checkAvailability);
+router.post("/reportLost", protect, reportLost);
+router.post("/createPrefrenceList", protect, createPrefrenceList);
+router.post("/addToPrefrenceList", protect, addToPrefrenceList);
+router.get("/getPrefrenceList", protect, getPrefrenceList);
+router.post("/removeFromPrefrenceList", protect, removeFromPrefrenceList);
 
 //Ashi's Routes
 //Get details of single book
-router.get("/bookDetails/:id", getBookDetails); //done
+router.get("/bookDetails/:id", protect, getBookDetails); 
 
-//Update book details
-router.post("/modifyBookDetails/:id", modifyBookDetails); //done
-
+//Get details of single book via isbn
+router.get("/bookDetailsViaIsbn/:isbn", protect, getBookDetailsViaIsbn); //done
 //Get all books
-router.get("/getBooks", getBooks); //done
+router.get("/getBooks", protect, getBooks); 
 
 //Rating of single book
-router.post("/rateBook/:id", rateBook); //p
+router.post("/rateBook/:id", protect, rateBook); 
 
 //Issue book to user
-router.post("/issueBook/:id", issueBookToUser); //done
+router.post("/issueBook", protect, issueBookToUser); 
+
+//Fine for lost book
+router.post("/payFineForLostBook", protect, payFineForLostBook);
+
+//Req for fine payment
+router.post("/requestFinePayment", protect, requestFinePaymentForOverdueBook);
+
+//Pay fine after getting approved
+router.post("/payFine", protect, payFineForOverdueBook);
 
 export default router;

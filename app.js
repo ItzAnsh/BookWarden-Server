@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./middlewares/connectDB.js";
-
+import "./scripts/fineSchedular.js"
 // Import Routes
 import userRouter from "./_routes/users/users.routes.js";
 import adminRouter from "./_routes/admin/admin.routes.js";
@@ -20,6 +20,10 @@ app.use(cors());
 app.use("/api/users", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/librarian", librarianRouter);
+
+app.get("/", (req, res) => {
+	res.send("API is working fine :)");
+});
 
 app.get("/", (req, res) => {
 	res.send("API is working fine :)");

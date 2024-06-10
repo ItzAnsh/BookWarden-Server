@@ -14,6 +14,6 @@ const wishlistSchema = new mongoose.Schema({
 });
 
 const Wishlist =
-	mongoose.models["wishlists"] || mongoose.model("Wishlist", wishlistSchema);
+	mongoose.models["wishlists"] || mongoose.model("wishlists", wishlistSchema);
 
 export default Wishlist;
