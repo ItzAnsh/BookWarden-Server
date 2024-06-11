@@ -23,6 +23,8 @@ import {
 	addToPrefrenceList,
 	getPrefrenceList,
 	removeFromPrefrenceList,
+	getUserHome,
+	getMyProfile,
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";

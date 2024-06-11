@@ -304,6 +304,10 @@ const removeFromPrefrenceList = AsyncErrorHandler(async (req, res) => {
 	});
 });
 
+const getUserHome = AsyncErrorHandler(async (req, res) => {});
+
+const getMyProfile = AsyncErrorHandler(async (req, res) => {});
+
 export {
 	getUserDetails,
 	loginUser,
@@ -316,4 +320,6 @@ export {
 	addToPrefrenceList,
 	getPrefrenceList,
 	removeFromPrefrenceList,
+	getUserHome,
+	getMyProfile,
 };
