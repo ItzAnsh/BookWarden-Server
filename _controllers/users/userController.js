@@ -6,6 +6,7 @@ import Book from "../../_models/books/book.model.js";
 import Fine from "../../_models/fine/fine.model.js";
 import Prefrence from "../../_models/prefrences/prefrence.model.js";
 import Genre from "../../_models/books/genre.model.js";
+import mongoose from "mongoose";
 
 const getUserDetails = AsyncErrorHandler(async (req, res) => {
 	const id = req.user;
@@ -306,7 +307,182 @@ const removeFromPrefrenceList = AsyncErrorHandler(async (req, res) => {
 
 const getUserHome = AsyncErrorHandler(async (req, res) => {});
 
-const getMyProfile = AsyncErrorHandler(async (req, res) => {});
+const getMyProfile = AsyncErrorHandler(async (req, res) => {
+	const pipeline = [
+		{
+			$facet: {
+				UserDetails: [
+					{
+						$match: {
+							_id: new mongoose.Types.ObjectId(req.user),
+						},
+					},
+					{
+						$project: {
+							_id: 1,
+							name: 1,
+							email: 1,
+							role: 1,
+							date: 1,
+						},
+					},
+				],
+
+				IssuedBooks: [
+					{
+						$lookup: {
+							from: "issues",
+							as: "issuedBooks",
+							pipeline: [
+								{
+									$match: {
+										userId: new mongoose.Types.ObjectId(req.user),
+									},
+								},
+								{
+									$lookup: {
+										from: "books",
+										as: "bookId",
+										localField: "bookId",
+										foreignField: "_id",
+									},
+								},
+								{
+									$lookup: {
+										from: "libraries",
+										as: "libraryId",
+										localField: "libraryId",
+										foreignField: "_id",
+									},
+								},
+								// {
+								// 	$project: {
+								// 		_id: 1,
+								// 		bookId: {
+								// 			_id: 1,
+								// 			title: 1,
+								// 			author: 1,
+								// 			description: 1,
+								// 			price: 1,
+								// 			publisher: 1,
+								// 			length: 1,
+								// 			imageURL: 1,
+								// 			isbn10: 1,
+								// 			isbn13: 1,
+								// 		},
+								// 		date: 1,
+								// 		deadline: 1,
+								// 		libraryId: {
+								// 			_id: 1,
+								// 			name: 1,
+								// 			location: 1,
+								// 			contactNo: 1,
+								// 			librarianEmail: 1,
+								// 			issuePeriod: 1,
+								// 			fineInterest: 1,
+								// 		},
+								// 		status: 1,
+								// 	},
+								// },
+							],
+						},
+					},
+					{
+						$project: {
+							issuedBooks: 1,
+							_id: 0,
+						},
+					},
+					{
+						$limit: 1,
+					},
+				],
+
+				Fines: [
+					{
+						$lookup: {
+							from: "fines",
+							as: "fines",
+							pipeline: [
+								{
+									$match: {
+										userId: new mongoose.Types.ObjectId(req.user),
+									},
+								},
+								{
+									$lookup: {
+										from: "issues",
+										as: "issueId",
+										pipeline: [
+											{
+												$match: {
+													userId: new mongoose.Types.ObjectId(req.user),
+												},
+											},
+											{
+												$lookup: {
+													from: "books",
+													as: "bookId",
+													localField: "bookId",
+													foreignField: "_id",
+												},
+											},
+											// {
+											// 	$project: {
+											// 		bookId: {
+											// 			_id: 1,
+											// 			title: 1,
+											// 			author: 1,
+											// 			description: 1,
+											// 			price: 1,
+											// 			publisher: 1,
+											// 			length: 1,
+											// 			imageURL: 1,
+											// 			isbn10: 1,
+											// 			isbn13: 1,
+											// 		},
+											// 	},
+											// },
+										],
+									},
+								},
+								{
+									$lookup: {
+										from: "libraries",
+										as: "libraryId",
+										localField: "libraryId",
+										foreignField: "_id",
+									},
+								},
+								// {
+								// 	$project: {
+								// 		userId: 0,
+								// 	},
+								// },
+							],
+						},
+					},
+					{
+						$project: {
+							fines: 1,
+							_id: 0,
+						},
+					},
+					{
+						$limit: 1,
+					},
+				],
+			},
+		},
+	];
+
+	const userHomeDetails = await User.aggregate(pipeline);
+
+	console.log(userHomeDetails);
+
+	res.status(200).json(userHomeDetails);
+	return;
+});
 
 export {
 	getUserDetails,
