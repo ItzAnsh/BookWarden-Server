@@ -31,6 +31,8 @@ import {
   likeBook,
   unlikeBook,
   getLikes,
+  getMyProfile,
+  getUserHome
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";

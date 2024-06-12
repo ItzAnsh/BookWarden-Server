@@ -640,4 +640,6 @@ export {
   likeBook,
   unlikeBook,
   getLikes,
+  getMyProfile,
+  getUserHome
 };
