@@ -6,6 +6,7 @@ import generateStrongPassword from "../../lib/generatePassword.js";
 import {
   sendWelcomeEmail,
   sendIssueStatusEmail,
+  sendRequestStatusEmail,
 } from "../../lib/nodemailer.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -13,21 +14,75 @@ import Issue from "../../_models/Issue/issue.model.js";
 import Library from "../../_models/Library/library.model.js";
 import Location from "../../_models/locations/locations.model.js";
 import Fine from "../../_models/fine/fine.model.js";
+import { json } from "express";
+import Request from "../../_models/requests/request.model.js";
+import Prefrence from "../../_models/prefrences/prefrence.model.js";
+import Wishlist from "../../_models/Wishlist/wishlist.model.js";
+
+const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
+  const librarianId = req.user;
+  if (!librarianId) {
+    res.status(400).json({ message: "Invalid Input data" });
+    return;
+  }
+
+  const librarian = await User.findById(librarianId).select("-password");
+  if (!librarian) {
+    res.status(404).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const library = await Library.findOne({ librarian: librarian._id });
+  if (!library) {
+    res.status(404).json({ message: "Library not found" });
+    return;
+  }
+
+  const books = await Location.find({ libraryId: library._id })
+    .populate("bookId")
+    .select("-libraryId");
+  if (!books) {
+    res.status(404).json({ message: "Books not found" });
+    return;
+  }
+
+  const issues = await Issue.find({ libraryId: library._id })
+    .populate("bookId")
+    .select("-libraryId")
+    .populate("userId");
+  if (!issues) {
+    res.status(404).json({ message: "Issues not found" });
+    return;
+  }
+
+  const fines = await Fine.find({ libraryId: library._id })
+    .populate("issueId")
+    .populate("issueId.bookId")
+    .populate("userId");
+  if (!fines) {
+    res.status(404).json({ message: "Fines not found" });
+    return;
+  }
+  library.librarian = librarian;
+  res.json({ library, books, issues, fines });
+});
 
 const getAllBooks = AsyncErrorHandler(async (req, res) => {
-  const books = await Book.find();
+  const books = await Book.find().populate("genre");
   res.json(books);
 });
 
 const getBook = AsyncErrorHandler(async (req, res) => {
   const { bookId } = req.params;
   if (!bookId) {
-    res.status(400);
+    res.status(400).json({ message: "Invalid input data" });
+    return;
   }
 
-  const book = await Book.findOne({ _id: new mongoose.Types.ObjectId(bookId) });
+  const book = await Book.findById(bookId).popoulate("genre");
   if (!book) {
-    res.status(400);
+    res.status(404).json({ message: "Book not found" });
+    return;
   }
 
   res.json(book);
@@ -105,6 +160,7 @@ const addBookToLibrary = AsyncErrorHandler(async (req, res) => {
   const book = await Book.findById(bookId);
   if (!book) {
     res.status(404).json({ message: "Book not found" });
+    return;
   }
 
   const library = await Library.findOne({ librarian: librarianId });
@@ -133,11 +189,11 @@ const addBookToLibrary = AsyncErrorHandler(async (req, res) => {
       availableQuantity,
     });
     await location.save();
+    res.json(location);
   }
 
   library.totalBooks += totalQuantity;
   await library.save();
-  res.json(location);
 });
 
 const addBookToLibraryViaIsbn = AsyncErrorHandler(async (req, res) => {
@@ -207,10 +263,15 @@ const removeBooksFromLibrary = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issues = await Issue.find({ libraryId : library._id, bookId: location.bookId });
+  const issues = await Issue.find({
+    libraryId: library._id,
+    bookId: location.bookId,
+  });
 
-  if(issues.length > 0) {
-    res.status(400).json({ message: "Books in library cannot be deleted, they have issues" });
+  if (issues.length > 0) {
+    res.status(400).json({
+      message: "Books in library cannot be deleted, they have issues",
+    });
     return;
   }
 
@@ -294,7 +355,8 @@ const updateBook = AsyncErrorHandler(async (req, res) => {
   });
 
   if (!updateBook) {
-    res.status(400);
+    res.status(400).json({ message: "Book not Updated" });
+    return;
   }
 
   res.json(updateBook);
@@ -310,6 +372,7 @@ const deleteBook = AsyncErrorHandler(async (req, res) => {
   const deleteBook = await Book.findByIdAndDelete(bookId);
   if (!deleteBook) {
     res.status(400).json({ message: "Book not found" });
+    return;
   }
 
   res.json(deleteBook);
@@ -323,22 +386,31 @@ const getAllUsers = AsyncErrorHandler(async (req, res) => {
 const getSpecificUser = AsyncErrorHandler(async (req, res) => {
   const { userId } = req.params;
   if (!userId) {
-    res.status(400);
+    res.status(400).json({ message: "Invalid input data" });
+    return;
   }
 
   const user = await User.findOne({ _id: new mongoose.Types.ObjectId(userId) });
   if (!user) {
     res.status(400).json({ message: "User not found" });
+    return;
   }
   res.json(user);
-
 });
 
 const createGenre = AsyncErrorHandler(async (req, res) => {
   const { name } = req.body;
   if (!name) {
     res.status(400).json({ message: "All fields are required" });
+    return;
   }
+
+  const existingGenre = await Genre.findOne({ name });
+  if (existingGenre) {
+    res.status(400).json({ message: "Genre already exists" });
+    return;
+  }
+
   const newGenre = new Genre({ name });
   await newGenre.save();
   res.json(newGenre);
@@ -352,20 +424,24 @@ const createUser = AsyncErrorHandler(async (req, res) => {
     res.status(400).json({
       message: "All fields are required",
     });
+    return;
   }
 
   const librarian = await User.findById(id);
   if (!librarian) {
     res.status(400).json({ message: "Librarian not found" });
+    return;
   }
 
   if (librarian.role !== process.env.LIBRARIAN_KEY) {
     res.status(400).json({ message: "Not a librarian" });
+    return;
   }
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     res.status(400).json({ message: "User already exists" });
+    return;
   }
 
   const password = generateStrongPassword();
@@ -378,7 +454,20 @@ const createUser = AsyncErrorHandler(async (req, res) => {
   });
   if (!user) {
     res.status(400).json({ message: "Failed to create user" });
+    return;
   }
+
+  const prefrenceList = new Prefrence({
+    userId: user._id,
+    genres: [],
+  });
+  await prefrenceList.save();
+
+  const wishlist = new Wishlist({
+    userId: user._id,
+    books: [],
+  });
+  await wishlist.save();
 
   sendWelcomeEmail(email, password, name);
   res.json({ user, password });
@@ -406,6 +495,8 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
 
   const createdUsers = [];
   const emailContent = [];
+  const prefrenceLists = [];
+  const wishLists = [];
 
   for (const user of users) {
     const existingUser = await User.findOne({ email });
@@ -436,11 +527,19 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
       name,
     });
 
-    createdUsers.push(newUser);
-    emailContent.push({ email, password, name });
+    prefrenceLists.push({
+      userId: user._id,
+      genres: [],
+    });
+
+    wishLists.push({
+      userId: user._id,
+      books: [],
+    });
   }
   await User.insertMany(createdUsers);
-
+  await Prefrence.insertMany(prefrenceLists);
+  await Wishlist.insertMany(wishLists);
   for (const email of emailContent) {
     sendWelcomeEmail(email.email, email.password, email.name);
   }
@@ -478,9 +577,15 @@ const loginLibrarian = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllIssues = AsyncErrorHandler(async (req, res) => {
-  const issues = await Issue.find().populate("books").populate({
+  const issues = await Issue.find().populate({
+    path : "bookId",
+    populate : "genre"
+  }).populate({
     path: "userId",
     select: "-password",
+  })
+  .populate({
+    path: "libraryId",
   });
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
@@ -511,11 +616,10 @@ const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
   }
 
   const issues = await Issue.find({ libraryId: library._id })
-    .populate("books")
+    .populate("bookId")
     .populate("userId");
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
-
 });
 
 const approveIssue = AsyncErrorHandler(async (req, res) => {
@@ -544,7 +648,7 @@ const approveIssue = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  if (issue.libraryId._id.toString() !== req.user) {
+  if (issue.libraryId.librarian.toString() !== req.user.toString()) {
     res.status(400).json({ message: "Not authorized, This is not your issue" });
     return;
   }
@@ -600,11 +704,22 @@ const rejectIssue = AsyncErrorHandler(async (req, res) => {
 const getSpecificIssue = AsyncErrorHandler(async (req, res) => {
   const { issueId } = req.params;
   if (!issueId) {
-    res.status(400);
+    res.status(400).json({ message: "Invalid input data" });
     return;
   }
 
-  const issue = await Issue.findById(issueId);
+  const issue = await Issue.findById(issueId)
+    .populate({
+      path: "bookId",
+      populate: {
+        path: "genre",
+      },
+    })
+    .populate({
+      path: "userId",
+      select: "-password",
+    })
+    .populate("libraryId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
@@ -717,7 +832,9 @@ const approveReturn = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const issue = await Issue.findById(issueId);
+  const issue = await Issue.findById(issueId)
+    .populate("bookId")
+    .populate("userId");
   if (!issue) {
     res.status(400).json({ message: "Issue not found" });
     return;
@@ -761,6 +878,7 @@ const approveReturn = AsyncErrorHandler(async (req, res) => {
     return;
   }
   location.availableQuantity += 1;
+  sendIssueStatusEmail(issue.userId.email, issue);
   await location.save();
 });
 
@@ -851,7 +969,59 @@ const approveFinePaymentRequest = async (req, res) => {
   res.json({ message: `Fine payment request approved successfully.` });
 };
 
+const getRequests = AsyncErrorHandler(async (req, res) => {
+  const librarianId = req.user;
+  const requests = await Request.find({ librarianId })
+    .populate("bookId")
+    .populate("libraryId")
+    .populate("librarianId");
+  res.json(requests);
+});
+
+const requestBooksToAdmin = AsyncErrorHandler(async (req, res) => {
+  const { bookId, quantity } = req.body;
+  const librarianId = req.user;
+
+  if (!bookId || !quantity || !librarianId) {
+    res.status(400).json({ message: "Invalid input data" });
+    return;
+  }
+
+  const book = await Book.findById(bookId);
+  if (!book) {
+    res.status(404).json({ message: "Book not found" });
+    return;
+  }
+
+  const librarian = await User.findById(librarianId);
+  if (!librarian) {
+    res.status(404).json({ message: "Librarian not found" });
+    return;
+  }
+
+  const library = await Library.findOne({ librarian: librarianId });
+  if (!library) {
+    res.status(404).json({ message: "Library not found" });
+    return;
+  }
+
+  const request = new Request({
+    bookId,
+    quantity,
+    libraryId: library._id,
+    adminId: library.adminId,
+    librarianId,
+  });
+
+  await request.save();
+  request.librarianId = librarian;
+  request.bookId = book;
+  sendRequestStatusEmail(librarian.email, request);
+  res.json(request);
+});
+
 export {
+  getLibraryDetails,
   getAllBooks,
   getBook,
   createBook,
@@ -881,4 +1051,6 @@ export {
   revokeFine,
   updateFine,
   approveFinePaymentRequest,
+  getRequests,
+  requestBooksToAdmin,
 };
