@@ -68,7 +68,7 @@ const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllBooks = AsyncErrorHandler(async (req, res) => {
-  const books = await Book.find();
+  const books = await Book.find().populate("genre");
   res.json(books);
 });
 
@@ -79,7 +79,7 @@ const getBook = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const book = await Book.findOne({ _id: new mongoose.Types.ObjectId(bookId) });
+  const book = await Book.findById(bookId).popoulate("genre");
   if (!book) {
     res.status(404).json({ message: "Book not found" });
     return;
