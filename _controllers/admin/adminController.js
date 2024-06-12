@@ -48,143 +48,152 @@ const getAllLibraries = AsyncErrorHandler(async (req, res) => {
 });
 
 const createLibrary = AsyncErrorHandler(async (req, res) => {
-	const {
-		name,
-		location,
-		contactNo,
-		contactEmail,
-		maxBooks,
-		issuePeriod,
-		librarianEmail,
-		fineInterest,
-	} = req.body;
 
-	if (
-		!name ||
-		!location ||
-		!contactNo ||
-		!contactEmail ||
-		!maxBooks ||
-		!issuePeriod ||
-		!librarianEmail ||
-		!fineInterest
-	) {
-		res.status(404).json({
-			message: "All fields are required",
-		});
-		return;
-	}
-	let librarian = await Users.findOne({
-		email: librarianEmail,
-		role: process.env.LIBRARIAN_KEY,
-	});
-	if (!librarian) {
-		const password = generateStrongPassword();
-		librarian = new Users({
-			email: librarianEmail,
-			password: password,
-			role: process.env.LIBRARIAN_KEY,
-			adminId: req.user,
-		});
-		sendWelcomeEmail(librarianEmail, password, "Librarian");
-		await librarian.save();
-	}
+  const {
+    name,
+    location,
+    contactNo,
+    contactEmail,
+    maxBooks,
+    issuePeriod,
+    librarianEmail,
+    fineInterest,
+  } = req.body;
 
-	const newLibrary = new Library({
-		name,
-		location,
-		contactNo,
-		contactEmail,
-		librarian: librarian._id,
-		totalBooks: 0,
-		adminId: req.user,
-		issuePeriod,
-		maxBooks,
-		fineInterest,
-	});
-	await newLibrary.save();
-	res.json(newLibrary);
+  if (
+    !name ||
+    !location ||
+    !contactNo ||
+    !contactEmail ||
+    !maxBooks ||
+    !issuePeriod ||
+    !librarianEmail ||
+    !fineInterest
+  ) {
+    res.status(404).json({
+      message: "All fields are required",
+    });
+    return;
+  }
+  
+
+  let librarian = await Users.findOne({
+    email: librarianEmail.toLowerCase(),
+    role: process.env.LIBRARIAN_KEY,
+  });
+  if (!librarian) {
+    const password = generateStrongPassword();
+    librarian = new Users({
+      email: librarianEmail.toLowerCase(),
+      password: password,
+      role: process.env.LIBRARIAN_KEY,
+      adminId: req.user,
+    });
+    sendWelcomeEmail(librarianEmail.toLowerCase(), password, "Librarian");
+    await librarian.save();
+  }else{
+    const library = await Library.findOne({librarian:librarian._id})
+    if(library){
+      res.status(400).json({message:"Librarian already exists"})
+      return;
+    }
+  }
+
+  const newLibrary = new Library({
+    name,
+    location,
+    contactNo,
+    contactEmail,
+    librarian: librarian._id,
+    totalBooks: 0,
+    adminId: req.user,
+    issuePeriod,
+    maxBooks,
+    fineInterest,
+  });
+  await newLibrary.save();
+  res.json(newLibrary);
 });
 
 const updateLibrary = AsyncErrorHandler(async (req, res) => {
-	const { id: libraryId } = req.params;
+  const { id: libraryId } = req.params;
 
-	if (!libraryId) {
-		res.status(400).json({ message: "All fields are required" });
-		return;
-	}
+  if (!libraryId) {
+    res.status(400).json({ message: "All fields are required" });
+    return;
+  }
 
-	const library = await Library.findById(libraryId);
+  const library = await Library.findById(libraryId);
 
-	if (!library) {
-		res.status(404).json({ message: "Library not found" });
-		return;
-	}
+  if (!library) {
+    res.status(404).json({ message: "Library not found" });
+    return;
+  }
 
-	if (library.adminId.toString() !== req.user.toString()) {
-		res
-			.status(400)
-			.json({ message: "You are not authorized to perform this action" });
-		return;
-	}
+  if (library.adminId.toString() !== req.user.toString()) {
+    res
+      .status(400)
+      .json({ message: "You are not authorized to perform this action" });
+    return;
+  }
 
-	let {
-		name,
-		location,
-		contactNo,
-		contactEmail,
-		maxBooks,
-		issuePeriod,
-		librarianEmail,
-		fineInterest,
-	} = req.body;
+  let {
+    name,
+    location,
+    contactNo,
+    contactEmail,
+    maxBooks,
+    issuePeriod,
+    librarianEmail,
+    fineInterest,
+  } = req.body;
 
-	let librarianId = library.librarian;
-	if (librarianEmail) {
-		let librarian = await Users.findOne({ email: librarianEmail });
-		if (!librarian) {
-			const password = generateStrongPassword();
-			librarian = new Users({
-				email: librarianEmail,
-				password: password,
-				role: process.env.LIBRARIAN_KEY,
-				adminId: req.user,
-			});
-			sendWelcomeEmail(librarianEmail, password, "Librarian");
-			librarianId = librarian._id;
-			await librarian.save();
-		}
-	}
+  let librarianId = library.librarian;
+  if (librarianEmail) {
+    let librarian = await Users.findOne({ email: librarianEmail.toLowerCase() });
+    if (!librarian) {
+      const password = generateStrongPassword();
+      librarian = new Users({
+        email: librarianEmail.toLowerCase(),
+        password: password,
+        role: process.env.LIBRARIAN_KEY,
+        adminId: req.user,
+      });
+      sendWelcomeEmail(librarianEmail.toLowerCase(), password, "Librarian");
+      librarianId = librarian._id;
+      await librarian.save();
+    }
+  }
 
-	name = name || library.name;
-	location = location || library.location;
-	contactNo = contactNo || library.contactNo;
-	contactEmail = contactEmail || library.contactEmail;
-	maxBooks = maxBooks || library.maxBooks;
-	issuePeriod = issuePeriod || library.issuePeriod;
-	fineInterest = fineInterest || library.fineInterest;
+  name = name || library.name;
+  location = location || library.location;
+  contactNo = contactNo || library.contactNo;
+  contactEmail = contactEmail || library.contactEmail;
+  maxBooks = maxBooks || library.maxBooks;
+  issuePeriod = issuePeriod || library.issuePeriod;
+  fineInterest = fineInterest || library.fineInterest;
 
-	const updateLibrary = await Library.findByIdAndUpdate(
-		libraryId,
+  const updateLibrary = await Library.findByIdAndUpdate(
+    libraryId,
 
-		{
-			name,
-			location,
-			contactNo,
-			contactEmail,
-			issuePeriod,
-			maxBooks,
-			fineInterest,
-			librarian: librarianId,
-		},
-		{ new: true }
-	);
+    {
+      name,
+      location,
+      contactNo,
+      contactEmail,
+      issuePeriod,
+      maxBooks,
+      fineInterest,
+      librarian: librarianId,
+    },
+    { new: true }
+  );
 
-	if (!updateLibrary) {
-		res.status(400).json({ message: "Library not Updated" });
-		return;
-	}
-	res.json(updateLibrary);
+  if (!updateLibrary) {
+    res.status(400).json({ message: "Library not Updated" });
+    return;
+  }
+  res.json(updateLibrary);
 });
 
 const deleteLibrary = AsyncErrorHandler(async (req, res) => {

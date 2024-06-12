@@ -17,6 +17,7 @@ import Fine from "../../_models/fine/fine.model.js";
 import { json } from "express";
 import Request from "../../_models/requests/request.model.js";
 import Prefrence from "../../_models/prefrences/prefrence.model.js";
+import Wishlist from "../../_models/Wishlist/wishlist.model.js";
 
 const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
   const librarianId = req.user;
@@ -67,7 +68,7 @@ const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllBooks = AsyncErrorHandler(async (req, res) => {
-  const books = await Book.find();
+  const books = await Book.find().populate("genre");
   res.json(books);
 });
 
@@ -78,7 +79,7 @@ const getBook = AsyncErrorHandler(async (req, res) => {
     return;
   }
 
-  const book = await Book.findOne({ _id: new mongoose.Types.ObjectId(bookId) });
+  const book = await Book.findById(bookId).popoulate("genre");
   if (!book) {
     res.status(404).json({ message: "Book not found" });
     return;
@@ -462,6 +463,12 @@ const createUser = AsyncErrorHandler(async (req, res) => {
   });
   await prefrenceList.save();
 
+  const wishlist = new Wishlist({
+    userId: user._id,
+    books: [],
+  });
+  await wishlist.save();
+
   sendWelcomeEmail(email, password, name);
   res.json({ user, password });
 });
@@ -489,6 +496,7 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
   const createdUsers = [];
   const emailContent = [];
   const prefrenceLists = [];
+  const wishLists = [];
 
   for (const user of users) {
     const existingUser = await User.findOne({ email });
@@ -523,9 +531,15 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
       userId: user._id,
       genres: [],
     });
+
+    wishLists.push({
+      userId: user._id,
+      books: [],
+    });
   }
   await User.insertMany(createdUsers);
   await Prefrence.insertMany(prefrenceLists);
+  await Wishlist.insertMany(wishLists);
   for (const email of emailContent) {
     sendWelcomeEmail(email.email, email.password, email.name);
   }
@@ -563,9 +577,15 @@ const loginLibrarian = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllIssues = AsyncErrorHandler(async (req, res) => {
-  const issues = await Issue.find().populate("books").populate({
+  const issues = await Issue.find().populate({
+    path : "bookId",
+    populate : "genre"
+  }).populate({
     path: "userId",
     select: "-password",
+  })
+  .populate({
+    path: "libraryId",
   });
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
@@ -596,8 +616,8 @@ const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
   }
 
   const issues = await Issue.find({ libraryId: library._id })
-    .populate("books")
-    .populate("userId");
+    .populate({ path: "bookId", popoulate: "genre" })
+    .populate({ path : "userId", select: "-password" });
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
 });

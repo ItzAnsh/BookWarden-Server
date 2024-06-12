@@ -1,14 +1,15 @@
+import { text } from "express";
 import mongoose from "mongoose";
 
 const ratingSchema = new mongoose.Schema({
 	bookId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "Book", // Assuming you have a Book model
+		ref: "books", // Assuming you have a Book model
 		required: true,
 	},
 	userId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "User", // Assuming you have a User model
+		ref: "users", // Assuming you have a User model
 		required: true,
 	},
 	rating: {
@@ -17,6 +18,9 @@ const ratingSchema = new mongoose.Schema({
 		max: 5,
 		required: true,
 	},
+	text: {
+		type: String
+	}
 });
 
 const Rating =

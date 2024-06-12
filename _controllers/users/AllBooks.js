@@ -9,8 +9,11 @@ import Library from "../../_models/Library/library.model.js";
 import Fine from "../../_models/fine/fine.model.js";
 import Transaction from "../../_models/transaction/transaction.model.js";
 
+import { sendIssueStatusEmail } from "../../lib/nodemailer.js";
+
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
+  
   const { id : bookId } = req.params;
 
   if (!bookId) {
@@ -18,9 +21,8 @@ const getBookDetails = AsyncErrorHandler(async (req, res) => {
     return;
   }
   const bookDetails = await Book.findById(bookId);
-
   if (!bookDetails) {
-    res.status(404).send("User id not found!");
+    res.status(404).send({ message : "Book not found!"});
     return;
   }
   res.json(bookDetails);
@@ -158,7 +160,10 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
     deadline: new Date(Date.now() + library.issuePeriod * 24 * 60 * 60 * 1000).setHours(0, 0, 0, 0)
   });
   await issue.save();
-
+  issue.userId = user;
+  issue.bookId = book;
+  issue.libraryId = library;
+  sendIssueStatusEmail(user.email, issue);
   res.status(201).json({ message: "Book issue request sent successfully to the librarian", issue });
 });
 
