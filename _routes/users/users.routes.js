@@ -59,18 +59,18 @@ router.get("/getLikes", protect, getLikes);
 
 //Ashi's Routes
 //Get details of single book
-router.get("/bookDetails/:id", protect, getBookDetails); 
+router.get("/bookDetails/:id", protect, getBookDetails);
 
 //Get details of single book via isbn
 router.get("/bookDetailsViaIsbn/:isbn", protect, getBookDetailsViaIsbn); //done
 //Get all books
-router.get("/getBooks", protect, getBooks); 
+router.get("/getBooks", protect, getBooks);
 
 //Rating of single book
-router.post("/rateBook/:id", protect, rateBook); 
+router.post("/rateBook/:id", protect, rateBook);
 
 //Issue book to user
-router.post("/issueBook", protect, issueBookToUser); 
+router.post("/issueBook", protect, issueBookToUser);
 
 //Fine for lost book
 router.post("/payFineForLostBook", protect, payFineForLostBook);
@@ -80,5 +80,10 @@ router.post("/requestFinePayment", protect, requestFinePaymentForOverdueBook);
 
 //Pay fine after getting approved
 router.post("/payFine", protect, payFineForOverdueBook);
+
+// User Home
+router.get("/home", protect, getUserHome);
+
+router.get("/myProfile", protect, getMyProfile);
 
 export default router;
