@@ -69,8 +69,32 @@ const modifyBookDetails = AsyncErrorHandler(async (req, res) => {
 
 //get all books
 const getBooks = AsyncErrorHandler(async (req, res) => {
-	const allBooks = await Book.find().populate("genre");
+	// const allBooks = await Book.find().populate("genre");
+	const allBooks = await Book.aggregate([
+		{
+			$lookup: {
+				from: "locations",
+				as: "locations",
+				localField: "_id",
+				foreignField: "bookId",
+			},
+		},
 
+		{
+			$lookup: {
+				from: "genres",
+				as: "genre",
+				localField: "genre",
+				foreignField: "_id",
+			},
+		},
+
+		{
+			$unwind: "$genre",
+		},
+	]);
+
+	// console.log(allBooks);
 	if (!allBooks || allBooks.length === 0) {
 		res.status(404).json({ message: "No books found" });
 		return;
@@ -165,12 +189,10 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
 	issue.bookId = book;
 	issue.libraryId = library;
 	sendIssueStatusEmail(user.email, issue);
-	res
-		.status(201)
-		.json({
-			message: "Book issue request sent successfully to the librarian",
-			issue,
-		});
+	res.status(201).json({
+		message: "Book issue request sent successfully to the librarian",
+		issue,
+	});
 });
 
 const checkAvailability = AsyncErrorHandler(async (req, res) => {
