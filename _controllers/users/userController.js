@@ -305,7 +305,108 @@ const removeFromPrefrenceList = AsyncErrorHandler(async (req, res) => {
 	});
 });
 
-const getUserHome = AsyncErrorHandler(async (req, res) => {});
+const getUserHome = AsyncErrorHandler(async (req, res) => {
+	const findBooks = await Prefrence.findOne({ userId: req.user });
+
+	if (!findBooks) {
+		res.status(404).json({ message: "Prefrences not found" });
+		return;
+	}
+
+	findBooks.genres.forEach((genre) => {
+		genre = new mongoose.Types.ObjectId(genre);
+	});
+	console.log(findBooks);
+
+	const pipeline = [
+		{
+			$facet: {
+				PreferredBooks: [
+					{
+						$match: {
+							genre: {
+								$in: findBooks.genres,
+							},
+						},
+					},
+				],
+
+				Categories: [
+					{
+						$lookup: {
+							from: "genres",
+							as: "AllGenres",
+							pipeline: [
+								{
+									$match: {},
+								},
+							],
+						},
+					},
+
+					{
+						$limit: 1,
+					},
+				],
+
+				RecentBooks: [
+					{
+						$sort: {
+							date: -1,
+						},
+					},
+					{
+						$limit: 12,
+					},
+				],
+
+				UpcomingDeadlines: [
+					{
+						$lookup: {
+							from: "issues",
+							as: "issues",
+							pipeline: [
+								{
+									$match: {
+										userId: new mongoose.Types.ObjectId(req.user),
+									},
+								},
+								{
+									$lookup: {
+										from: "books",
+										as: "bookId",
+										localField: "bookId",
+										foreignField: "_id",
+									},
+								},
+								{
+									$lookup: {
+										from: "libraries",
+										as: "libraryId",
+										localField: "libraryId",
+										foreignField: "_id",
+									},
+								},
+
+								{
+									$project: {
+										_id: 0,
+										bookId: 1,
+										deadline: 1,
+									},
+								},
+							],
+						},
+					},
+				],
+			},
+		},
+	];
+
+	const details = await Book.aggregate(pipeline);
+
+	res.status(200).json(details[0]);
+});
 
 const getMyProfile = AsyncErrorHandler(async (req, res) => {
 	const pipeline = [
@@ -478,7 +579,7 @@ const getMyProfile = AsyncErrorHandler(async (req, res) => {
 
 	const userHomeDetails = await User.aggregate(pipeline);
 
-	console.log(userHomeDetails);
+	// console.log(userHomeDetails);
 
 	res.status(200).json(userHomeDetails[0]);
 	return;
