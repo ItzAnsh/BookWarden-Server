@@ -13,6 +13,7 @@ import { sendIssueStatusEmail } from "../../lib/nodemailer.js";
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
+  
   const { id : bookId } = req.params;
 
   if (!bookId) {
@@ -20,9 +21,8 @@ const getBookDetails = AsyncErrorHandler(async (req, res) => {
     return;
   }
   const bookDetails = await Book.findById(bookId);
-
   if (!bookDetails) {
-    res.status(404).send("User id not found!");
+    res.status(404).send({ message : "Book not found!"});
     return;
   }
   res.json(bookDetails);

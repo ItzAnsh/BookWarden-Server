@@ -7,6 +7,8 @@ import Fine from "../../_models/fine/fine.model.js";
 import Prefrence from "../../_models/prefrences/prefrence.model.js";
 import Genre from "../../_models/books/genre.model.js";
 import Rating from "../../_models/Rating/ratings.model.js";
+import Wishlist from "../../_models/Wishlist/wishlist.model.js";
+import mongoose from "mongoose";
 
 const getUserDetails = AsyncErrorHandler(async (req, res) => {
   const id = req.user;
@@ -355,6 +357,92 @@ const getBookRatings = AsyncErrorHandler(async (req, res) => {
   res.json({ averageRating, ratings });
 })
 
+const likeBook = AsyncErrorHandler(async (req, res) => {
+  const { bookId }  = req.body;
+  const userId = req.user;
+
+  if (!bookId || !userId) {
+	return res.status(400).send({ message: "Invalid input data!" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+	return res.status(404).send({ message: "User not found!" });
+  }
+
+  const book = await Book.findById(bookId);
+
+  if (!book) {
+	return res.status(404).send({ message: "Book not found!" });
+  }
+
+  let wishlist = await Wishlist.findOne({ userId });
+  if (!wishlist) {
+	wishlist = new Wishlist({ userId, books: [bookId] });
+	await wishlist.save();
+	res.json({ message: "Book liked successfully." });
+	return;
+  }
+
+  if (wishlist.books.includes(bookId)) {
+	return res.status(400).send({ message: "Book already liked!" });
+  }
+
+  wishlist.books.push(bookId);
+  await wishlist.save();
+  res.json({ message: "Book liked successfully." });
+});
+
+const unlikeBook = AsyncErrorHandler(async (req, res) => {
+  const {bookId}  = req.body;
+  const userId = req.user;
+
+  if (!bookId || !userId) {
+	return res.status(400).send({ message: "Invalid input data!" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+	return res.status(404).send({ message: "User not found!" });
+  }
+
+  const book = await Book.findById(bookId);
+  if (!book) {
+	return res.status(404).send({ message: "Book not found!" });
+  }
+
+  const wishlist = await Wishlist.findOne({ userId });
+  if (!wishlist) {
+	return res.status(404).send({ message: "Wishlist not found!" });
+  }
+
+  if (!wishlist.books.includes(bookId)) {
+	return res.status(400).send({ message: "Book not liked!" });
+  }
+
+  const index = wishlist.books.indexOf(bookId);
+  wishlist.books.splice(index, 1);
+  await wishlist.save();
+  res.json({ message: "Book unliked successfully." });
+});
+
+const getLikes = AsyncErrorHandler(async (req, res) => {
+  const userId = req.user;
+  if (!userId) {
+	return res.status(400).send({ message: "Invalid input data!" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+	return res.status(404).send({ message: "User not found!" });
+  }
+
+  const wishlist = await Wishlist.findOne({ userId }).populate({ path: "books", populate: { path: "genre" } }).populate("userId");
+  if (!wishlist) {
+	return res.status(404).send({ message: "Wishlist not found!" });
+  }
+  res.json(wishlist);
+});
 
 export {
   getUserDetails,
@@ -369,5 +457,8 @@ export {
   getPrefrenceList,
   removeFromPrefrenceList,
   giveRating,
-  getBookRatings
+  getBookRatings,
+  likeBook,
+  unlikeBook,
+  getLikes,
 };

@@ -17,6 +17,7 @@ import Fine from "../../_models/fine/fine.model.js";
 import { json } from "express";
 import Request from "../../_models/requests/request.model.js";
 import Prefrence from "../../_models/prefrences/prefrence.model.js";
+import Wishlist from "../../_models/Wishlist/wishlist.model.js";
 
 const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
   const librarianId = req.user;
@@ -462,6 +463,12 @@ const createUser = AsyncErrorHandler(async (req, res) => {
   });
   await prefrenceList.save();
 
+  const wishlist = new Wishlist({
+    userId: user._id,
+    books: [],
+  });
+  await wishlist.save();
+
   sendWelcomeEmail(email, password, name);
   res.json({ user, password });
 });
@@ -489,6 +496,7 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
   const createdUsers = [];
   const emailContent = [];
   const prefrenceLists = [];
+  const wishLists = [];
 
   for (const user of users) {
     const existingUser = await User.findOne({ email });
@@ -523,9 +531,15 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
       userId: user._id,
       genres: [],
     });
+
+    wishLists.push({
+      userId: user._id,
+      books: [],
+    });
   }
   await User.insertMany(createdUsers);
   await Prefrence.insertMany(prefrenceLists);
+  await Wishlist.insertMany(wishLists);
   for (const email of emailContent) {
     sendWelcomeEmail(email.email, email.password, email.name);
   }

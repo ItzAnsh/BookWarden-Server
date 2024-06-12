@@ -27,7 +27,10 @@ import {
   getPrefrenceList,
   removeFromPrefrenceList,
   giveRating,
-  getBookRatings
+  getBookRatings,
+  likeBook,
+  unlikeBook,
+  getLikes,
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
@@ -50,6 +53,9 @@ router.get("/getBookRatings/:bookId", protect, getBookRatings);
 router.get("/getFines", protect, getFines);
 router.post("/payFine", protect, payFine);
 router.post("/requestRenewal", protect, requestRenewal);
+router.post("/likeBook", protect, likeBook);
+router.post("/unlikeBook", protect, unlikeBook);
+router.get("/getLikes", protect, getLikes);
 
 //Ashi's Routes
 //Get details of single book
