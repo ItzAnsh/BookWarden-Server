@@ -480,7 +480,7 @@ const getMyProfile = AsyncErrorHandler(async (req, res) => {
 
 	console.log(userHomeDetails);
 
-	res.status(200).json(userHomeDetails);
+	res.status(200).json(userHomeDetails[0]);
 	return;
 });
 
