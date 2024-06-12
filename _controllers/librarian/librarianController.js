@@ -577,16 +577,18 @@ const loginLibrarian = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllIssues = AsyncErrorHandler(async (req, res) => {
-  const issues = await Issue.find().populate({
-    path : "bookId",
-    populate : "genre"
-  }).populate({
-    path: "userId",
-    select: "-password",
-  })
-  .populate({
-    path: "libraryId",
-  });
+  const issues = await Issue.find()
+    .populate({
+      path: "bookId",
+      populate: "genre",
+    })
+    .populate({
+      path: "userId",
+      select: "-password",
+    })
+    .populate({
+      path: "libraryId",
+    });
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
 });
@@ -616,8 +618,14 @@ const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
   }
 
   const issues = await Issue.find({ libraryId: library._id })
-    .populate({ path: "bookId", popoulate: "genre" })
-    .populate({ path : "userId", select: "-password" });
+    .populate({
+      path: "bookId",
+      populate: "genre"
+    })
+    .populate({
+      path: "userId",
+      select: "-password",
+    });
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);
 });
