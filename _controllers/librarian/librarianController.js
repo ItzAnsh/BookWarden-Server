@@ -602,7 +602,7 @@ const getLibraryIssues = AsyncErrorHandler(async (req, res) => {
   }
 
   const issues = await Issue.find({ libraryId: library._id })
-    .populate("books")
+    .populate("bookId")
     .populate("userId");
   issues.sort((a, b) => b.date - a.date);
   res.json(issues);

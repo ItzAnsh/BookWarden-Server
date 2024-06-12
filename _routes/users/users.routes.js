@@ -1,13 +1,16 @@
 import express from "express";
 // Ashi's Functions
 import {
-	getBookDetails,
-	getBookDetailsViaIsbn,
-	getBooks,
-	rateBook,
-	issueBookToUser,
-	checkAvailability,
-  reportLost
+  getBookDetails,
+  getBookDetailsViaIsbn,
+  getBooks,
+  rateBook,
+  issueBookToUser,
+  checkAvailability,
+  requestRenewal,
+  reportLost,
+  getFines,
+  payFine,
 } from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
@@ -23,6 +26,8 @@ import {
   addToPrefrenceList,
   getPrefrenceList,
   removeFromPrefrenceList,
+  giveRating,
+  getBookRatings
 } from "../../_controllers/users/userController.js";
 
 import { protect } from "../../middlewares/authMiddleware.js";
@@ -40,6 +45,11 @@ router.post("/createPrefrenceList", protect, createPrefrenceList);
 router.post("/addToPrefrenceList", protect, addToPrefrenceList);
 router.get("/getPrefrenceList", protect, getPrefrenceList);
 router.post("/removeFromPrefrenceList", protect, removeFromPrefrenceList);
+router.post("/giveRating", protect, giveRating);
+router.get("/getBookRatings/:bookId", protect, getBookRatings);
+router.get("/getFines", protect, getFines);
+router.post("/payFine", protect, payFine);
+router.post("/requestRenewal", protect, requestRenewal);
 
 //Ashi's Routes
 //Get details of single book
