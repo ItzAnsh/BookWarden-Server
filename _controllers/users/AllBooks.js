@@ -84,6 +84,20 @@ const getBooks = AsyncErrorHandler(async (req, res) => {
 							as: "libraryId",
 							localField: "libraryId",
 							foreignField: "_id",
+							pipeline: [
+								{
+									$lookup: {
+										from: "users",
+										as: "librarian",
+										localField: "librarian",
+										foreignField: "_id",
+									},
+								},
+
+								{
+									$unwind: "$librarian",
+								},
+							],
 						},
 					},
 
