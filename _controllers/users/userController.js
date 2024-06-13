@@ -96,20 +96,20 @@ const updatePassword = AsyncErrorHandler(async (req, res) => {
 });
 
 const getUserIssues = AsyncErrorHandler(async (req, res) => {
-  const id = req.user;
+	const id = req.user;
 
-  const user = await User.findById(id);
-  if (!user) {
-    res.status(400).json({ message: "User not found" });
-    return;
-  }
+	const user = await User.findById(id);
+	if (!user) {
+		res.status(400).json({ message: "User not found" });
+		return;
+	}
 
-  const issuedBooks = await Issue.find({ userId: id }).populate("bookId");
-  if (!issuedBooks) {
-    res.status(400).json({ message: "Issue not found" });
-    return;
-  }
-  res.json(issuedBooks);
+	const issuedBooks = await Issue.find({ userId: id }).populate("bookId");
+	if (!issuedBooks) {
+		res.status(400).json({ message: "Issue not found" });
+		return;
+	}
+	res.json(issuedBooks);
 });
 
 //FINE FOR LOST BOOK
@@ -331,6 +331,15 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 							},
 						},
 					},
+
+					{
+						$lookup: {
+							from: "genres",
+							as: "genre",
+							localField: "genre",
+							foreignField: "_id",
+						},
+					},
 				],
 
 				Categories: [
@@ -357,6 +366,16 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 							date: -1,
 						},
 					},
+
+					{
+						$lookup: {
+							from: "genres",
+							as: "genre",
+							localField: "genre",
+							foreignField: "_id",
+						},
+					},
+
 					{
 						$limit: 12,
 					},
@@ -379,6 +398,20 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 										as: "bookId",
 										localField: "bookId",
 										foreignField: "_id",
+										pipeline: [
+											{
+												$match: {},
+											},
+
+											{
+												$lookup: {
+													from: "genres",
+													as: "genre",
+													localField: "genre",
+													foreignField: "_id",
+												},
+											},
+										],
 									},
 								},
 								{
@@ -588,159 +621,168 @@ const getMyProfile = AsyncErrorHandler(async (req, res) => {
 });
 
 const giveRating = AsyncErrorHandler(async (req, res) => {
-  const userId = req.user;
-  const { ratingNumber, ratingText, bookId } = req.body;
-  if (!userId) {
-	return res.status(400).send({ message: "Invalid input data!" });
-  }
+	const userId = req.user;
+	const { ratingNumber, ratingText, bookId } = req.body;
+	if (!userId) {
+		return res.status(400).send({ message: "Invalid input data!" });
+	}
 
-  const user = await User.findById(userId);
-  if (!user) {
-	return res.status(404).send({ message: "User not found!" });
-  }
-  const book = await Book.findById(bookId);
-  if (!book) {
-	return res.status(404).send({ message: "Book not found!" });
-  }
+	const user = await User.findById(userId);
+	if (!user) {
+		return res.status(404).send({ message: "User not found!" });
+	}
+	const book = await Book.findById(bookId);
+	if (!book) {
+		return res.status(404).send({ message: "Book not found!" });
+	}
 
-  const rating = new Rating({ userId, bookId, rating: ratingNumber, text: ratingText });
-  await rating.save();
-  rating.userId = user;
-  rating.bookId = book;
-  res.json({ message: "Rating given successfully.", rating });
-})
+	const rating = new Rating({
+		userId,
+		bookId,
+		rating: ratingNumber,
+		text: ratingText,
+	});
+	await rating.save();
+	rating.userId = user;
+	rating.bookId = book;
+	res.json({ message: "Rating given successfully.", rating });
+});
 
 const getBookRatings = AsyncErrorHandler(async (req, res) => {
-  const userId = req.user;
-  const { bookId } = req.params;
-  if (!userId) {
-	return res.status(400).send({ message: "Invalid input data!" });
-  }
+	const userId = req.user;
+	const { bookId } = req.params;
+	if (!userId) {
+		return res.status(400).send({ message: "Invalid input data!" });
+	}
 
-  const user = await User.findById(userId);
-  if (!user) {
-	return res.status(404).send({ message: "User not found!" });
-  }
+	const user = await User.findById(userId);
+	if (!user) {
+		return res.status(404).send({ message: "User not found!" });
+	}
 
-  const ratings = await Rating.find({ bookId }).populate("bookId").populate("userId");
-  if (!ratings) {
-	return res.status(404).send({ message: "Rating not found!" });
-  }
-  let totalrating = 0;
-  let i = 0;
-  for (const rating of ratings) {
-	totalrating += rating.rating;
-	i++;
-  }	
-  const averageRating = totalrating / i;
+	const ratings = await Rating.find({ bookId })
+		.populate("bookId")
+		.populate("userId");
+	if (!ratings) {
+		return res.status(404).send({ message: "Rating not found!" });
+	}
+	let totalrating = 0;
+	let i = 0;
+	for (const rating of ratings) {
+		totalrating += rating.rating;
+		i++;
+	}
+	const averageRating = totalrating / i;
 
-  res.json({ averageRating, ratings });
-})
+	res.json({ averageRating, ratings });
+});
 
 const likeBook = AsyncErrorHandler(async (req, res) => {
-  const { bookId }  = req.body;
-  const userId = req.user;
+	const { bookId } = req.body;
+	const userId = req.user;
 
-  if (!bookId || !userId) {
-	return res.status(400).send({ message: "Invalid input data!" });
-  }
+	if (!bookId || !userId) {
+		return res.status(400).send({ message: "Invalid input data!" });
+	}
 
-  const user = await User.findById(userId);
-  if (!user) {
-	return res.status(404).send({ message: "User not found!" });
-  }
+	const user = await User.findById(userId);
+	if (!user) {
+		return res.status(404).send({ message: "User not found!" });
+	}
 
-  const book = await Book.findById(bookId);
+	const book = await Book.findById(bookId);
 
-  if (!book) {
-	return res.status(404).send({ message: "Book not found!" });
-  }
+	if (!book) {
+		return res.status(404).send({ message: "Book not found!" });
+	}
 
-  let wishlist = await Wishlist.findOne({ userId });
-  if (!wishlist) {
-	wishlist = new Wishlist({ userId, books: [bookId] });
+	let wishlist = await Wishlist.findOne({ userId });
+	if (!wishlist) {
+		wishlist = new Wishlist({ userId, books: [bookId] });
+		await wishlist.save();
+		res.json({ message: "Book liked successfully." });
+		return;
+	}
+
+	if (wishlist.books.includes(bookId)) {
+		return res.status(400).send({ message: "Book already liked!" });
+	}
+
+	wishlist.books.push(bookId);
 	await wishlist.save();
 	res.json({ message: "Book liked successfully." });
-	return;
-  }
-
-  if (wishlist.books.includes(bookId)) {
-	return res.status(400).send({ message: "Book already liked!" });
-  }
-
-  wishlist.books.push(bookId);
-  await wishlist.save();
-  res.json({ message: "Book liked successfully." });
 });
 
 const unlikeBook = AsyncErrorHandler(async (req, res) => {
-  const {bookId}  = req.body;
-  const userId = req.user;
+	const { bookId } = req.body;
+	const userId = req.user;
 
-  if (!bookId || !userId) {
-	return res.status(400).send({ message: "Invalid input data!" });
-  }
+	if (!bookId || !userId) {
+		return res.status(400).send({ message: "Invalid input data!" });
+	}
 
-  const user = await User.findById(userId);
-  if (!user) {
-	return res.status(404).send({ message: "User not found!" });
-  }
+	const user = await User.findById(userId);
+	if (!user) {
+		return res.status(404).send({ message: "User not found!" });
+	}
 
-  const book = await Book.findById(bookId);
-  if (!book) {
-	return res.status(404).send({ message: "Book not found!" });
-  }
+	const book = await Book.findById(bookId);
+	if (!book) {
+		return res.status(404).send({ message: "Book not found!" });
+	}
 
-  const wishlist = await Wishlist.findOne({ userId });
-  if (!wishlist) {
-	return res.status(404).send({ message: "Wishlist not found!" });
-  }
+	const wishlist = await Wishlist.findOne({ userId });
+	if (!wishlist) {
+		return res.status(404).send({ message: "Wishlist not found!" });
+	}
 
-  if (!wishlist.books.includes(bookId)) {
-	return res.status(400).send({ message: "Book not liked!" });
-  }
+	if (!wishlist.books.includes(bookId)) {
+		return res.status(400).send({ message: "Book not liked!" });
+	}
 
-  const index = wishlist.books.indexOf(bookId);
-  wishlist.books.splice(index, 1);
-  await wishlist.save();
-  res.json({ message: "Book unliked successfully." });
+	const index = wishlist.books.indexOf(bookId);
+	wishlist.books.splice(index, 1);
+	await wishlist.save();
+	res.json({ message: "Book unliked successfully." });
 });
 
 const getLikes = AsyncErrorHandler(async (req, res) => {
-  const userId = req.user;
-  if (!userId) {
-	return res.status(400).send({ message: "Invalid input data!" });
-  }
+	const userId = req.user;
+	if (!userId) {
+		return res.status(400).send({ message: "Invalid input data!" });
+	}
 
-  const user = await User.findById(userId);
-  if (!user) {
-	return res.status(404).send({ message: "User not found!" });
-  }
+	const user = await User.findById(userId);
+	if (!user) {
+		return res.status(404).send({ message: "User not found!" });
+	}
 
-  const wishlist = await Wishlist.findOne({ userId }).populate({ path: "books", populate: { path: "genre" } }).populate("userId");
-  if (!wishlist) {
-	return res.status(404).send({ message: "Wishlist not found!" });
-  }
-  res.json(wishlist);
+	const wishlist = await Wishlist.findOne({ userId })
+		.populate({ path: "books", populate: { path: "genre" } })
+		.populate("userId");
+	if (!wishlist) {
+		return res.status(404).send({ message: "Wishlist not found!" });
+	}
+	res.json(wishlist);
 });
 
 export {
-  getUserDetails,
-  loginUser,
-  updatePassword,
-  getUserIssues,
-  payFineForLostBook,
-  requestFinePaymentForOverdueBook,
-  payFineForOverdueBook,
-  createPrefrenceList,
-  addToPrefrenceList,
-  getPrefrenceList,
-  removeFromPrefrenceList,
-  giveRating,
-  getBookRatings,
-  likeBook,
-  unlikeBook,
-  getLikes,
-  getMyProfile,
-  getUserHome
+	getUserDetails,
+	loginUser,
+	updatePassword,
+	getUserIssues,
+	payFineForLostBook,
+	requestFinePaymentForOverdueBook,
+	payFineForOverdueBook,
+	createPrefrenceList,
+	addToPrefrenceList,
+	getPrefrenceList,
+	removeFromPrefrenceList,
+	giveRating,
+	getBookRatings,
+	likeBook,
+	unlikeBook,
+	getLikes,
+	getMyProfile,
+	getUserHome,
 };
