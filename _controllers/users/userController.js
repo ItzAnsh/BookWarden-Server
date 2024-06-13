@@ -430,6 +430,25 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 					},
 
 					{
+						$lookup: {
+							from: "locations",
+							as: "locations",
+							localField: "_id",
+							foreignField: "bookId",
+							pipeline: [
+								{
+									$lookup: {
+										from: "libraries",
+										as: "libraryId",
+										localField: "libraryId",
+										foreignField: "_id",
+									},
+								},
+							],
+						},
+					},
+
+					{
 						$unwind: "$genre",
 					},
 
