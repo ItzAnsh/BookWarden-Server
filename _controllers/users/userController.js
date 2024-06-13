@@ -569,6 +569,9 @@ const getMyProfile = AsyncErrorHandler(async (req, res) => {
 							],
 						},
 					},
+					// {
+					// 	$unwind: "$IssuedBooks",
+					// },
 					{
 						$project: {
 							issuedBooks: 1,
@@ -655,6 +658,14 @@ const getMyProfile = AsyncErrorHandler(async (req, res) => {
 					},
 				],
 			},
+		},
+
+		{
+			$unwind: "$IssuedBooks",
+		},
+
+		{
+			$unwind: "$Fines",
 		},
 	];
 
