@@ -4,9 +4,8 @@ import bcrypt from "bcrypt";
 const userSchema = new mongoose.Schema({
 	name: {
 		type: String,
-		required: true,
 		maxLength: 255,
-		default: "Librarian",
+		default: "User",
 	},
 	email: {
 		type: String,
