@@ -340,6 +340,10 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 							foreignField: "_id",
 						},
 					},
+
+					{
+						$unwind: "$genre",
+					},
 				],
 
 				Categories: [
