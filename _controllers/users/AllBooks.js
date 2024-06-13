@@ -88,6 +88,15 @@ const getBooks = AsyncErrorHandler(async (req, res) => {
 					},
 
 					{
+						$project: {
+							_id: 0,
+							availableQuantity: 1,
+							totalQuantity: 1,
+							libraryId: 1,
+						},
+					},
+
+					{
 						$unwind: "$libraryId",
 					},
 				],

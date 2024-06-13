@@ -355,7 +355,22 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 								{
 									$match: {},
 								},
+
+								{
+									$lookup: {
+										from: "books",
+										as: "books",
+										localField: "_id",
+										foreignField: "genre",
+									},
+								},
 							],
+						},
+					},
+
+					{
+						$project: {
+							AllGenres: 1,
 						},
 					},
 
