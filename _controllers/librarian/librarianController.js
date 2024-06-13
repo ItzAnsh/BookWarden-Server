@@ -18,6 +18,7 @@ import { json } from "express";
 import Request from "../../_models/requests/request.model.js";
 import Prefrence from "../../_models/prefrences/prefrence.model.js";
 import Wishlist from "../../_models/Wishlist/wishlist.model.js";
+import { validate } from "node-cron";
 
 const getLibraryDetails = AsyncErrorHandler(async (req, res) => {
 	const librarianId = req.user;
@@ -501,15 +502,16 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
 	const wishLists = [];
 
 	for (const user of users) {
-		const existingUser = await User.findOne({ email });
+		const existingUser = await User.findOne({ email: user.email });
 		if (existingUser) {
 			console.log("User already exists:", user.email);
 			continue;
 		}
 
-		const { name, email } = user;
+		const { email } = user;
+		// const { email } = user;
 
-		if (!name || !email) {
+		if (!email) {
 			console.log("All fields are required for " + user.email);
 			continue;
 		}
@@ -517,7 +519,6 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
 		const password = generateStrongPassword();
 
 		createdUsers.push({
-			name,
 			email,
 			password,
 			adminId: librarian.adminId,
@@ -526,9 +527,12 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
 		emailContent.push({
 			email,
 			password,
-			name,
 		});
+	}
 
+	const createdUsersList = await User.insertMany(createdUsers);
+
+	createdUsersList.forEach((user) => {
 		prefrenceLists.push({
 			userId: user._id,
 			genres: [],
@@ -538,10 +542,11 @@ const createMultipleUser = AsyncErrorHandler(async (req, res) => {
 			userId: user._id,
 			books: [],
 		});
-	}
-	await User.insertMany(createdUsers);
+	});
+
 	await Prefrence.insertMany(prefrenceLists);
 	await Wishlist.insertMany(wishLists);
+
 	for (const email of emailContent) {
 		sendWelcomeEmail(email.email, email.password, email.name);
 	}
