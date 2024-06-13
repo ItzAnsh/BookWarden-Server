@@ -11,6 +11,7 @@ import {
   reportLost,
   getFines,
   payFine,
+  getGenre
 } from "../../_controllers/users/AllBooks.js";
 
 // Ashu's Functions
@@ -58,6 +59,7 @@ router.post("/requestRenewal", protect, requestRenewal);
 router.post("/likeBook", protect, likeBook);
 router.post("/unlikeBook", protect, unlikeBook);
 router.get("/getLikes", protect, getLikes);
+router.get("/getGenre/:id", protect, getGenre);
 
 //Ashi's Routes
 //Get details of single book
