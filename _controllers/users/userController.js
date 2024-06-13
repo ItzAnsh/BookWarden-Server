@@ -568,6 +568,20 @@ const getMyProfile = AsyncErrorHandler(async (req, res) => {
 										as: "bookId",
 										localField: "bookId",
 										foreignField: "_id",
+										pipeline: [
+											{
+												$lookup: {
+													from: "genres",
+													as: "genre",
+													localField: "genre",
+													foreignField: "_id",
+												},
+											},
+
+											{
+												$unwind: "$genre",
+											},
+										],
 									},
 								},
 								{
@@ -578,6 +592,10 @@ const getMyProfile = AsyncErrorHandler(async (req, res) => {
 										foreignField: "_id",
 									},
 								},
+
+								// {
+								// 	$unwind: "$genre",
+								// },
 								// {
 								// 	$project: {
 								// 		_id: 1,
