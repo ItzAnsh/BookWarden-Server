@@ -384,6 +384,7 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 
 					{
 						$project: {
+							_id: 0,
 							AllGenres: 1,
 						},
 					},
@@ -476,6 +477,10 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 					},
 				],
 			},
+		},
+
+		{
+			$unwind: "$Categories",
 		},
 	];
 
