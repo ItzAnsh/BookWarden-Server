@@ -10,6 +10,7 @@ import Fine from "../../_models/fine/fine.model.js";
 import Transaction from "../../_models/transaction/transaction.model.js";
 
 import { sendIssueStatusEmail } from "../../lib/nodemailer.js";
+import Genre from "../../_models/books/genre.model.js";
 
 //Book details
 const getBookDetails = AsyncErrorHandler(async (req, res) => {
@@ -420,6 +421,15 @@ const payFine = AsyncErrorHandler(async (req, res) => {
 	res.json({ message: "Fine paid successfully" });
 });
 
+const getGenre = AsyncErrorHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ message: "Invalid input data" });
+  }
+  const genre = await Genre.findById(id);
+  res.json({ genre });
+});
+
 export {
 	getBookDetails,
 	getBookDetailsViaIsbn,
@@ -433,4 +443,5 @@ export {
 	reportLost,
 	getFines,
 	payFine,
+  getGenre
 };
