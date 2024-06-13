@@ -388,7 +388,65 @@ const deleteBook = AsyncErrorHandler(async (req, res) => {
 });
 
 const getAllUsers = AsyncErrorHandler(async (req, res) => {
-	const users = await User.find();
+	const users = await User.aggregate([
+		{
+			$match: {},
+		},
+
+		{
+			$lookup: {
+				from: "issues",
+				as: "issuedBooks",
+				localField: "_id",
+				foreignField: "userId",
+				pipeline: [
+					{
+						$match: {
+							status: "issued",
+						},
+					},
+
+					{
+						$lookup: {
+							from: "books",
+							as: "bookId",
+							localField: "bookId",
+							foreignField: "_id",
+							pipeline: [
+								{
+									$lookup: {
+										from: "genres",
+										as: "genre",
+										localField: "genre",
+										foreignField: "_id",
+									},
+								},
+							],
+						},
+					},
+
+					{
+						$lookup: {
+							from: "libraries",
+							as: "libraryId",
+							localField: "libraryId",
+							foreignField: "_id",
+							pipeline: [
+								{
+									$lookup: {
+										from: "users",
+										as: "librarian",
+										localField: "librarian",
+										foreignField: "_id",
+									},
+								},
+							],
+						},
+					},
+				],
+			},
+		},
+	]);
 	res.json(users);
 });
 
