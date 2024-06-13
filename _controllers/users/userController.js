@@ -381,6 +381,10 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 					},
 
 					{
+						$unwind: "$genre",
+					},
+
+					{
 						$limit: 12,
 					},
 				],
@@ -414,6 +418,10 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 													localField: "genre",
 													foreignField: "_id",
 												},
+											},
+
+											{
+												$unwind: "$genre",
 											},
 										],
 									},
