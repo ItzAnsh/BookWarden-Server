@@ -662,7 +662,7 @@ const getBookRatings = AsyncErrorHandler(async (req, res) => {
 
 	const ratings = await Rating.find({ bookId })
 		.populate("bookId")
-		.populate("userId");
+		.populate({path : "userId", select: "-password"});
 	if (!ratings) {
 		return res.status(404).send({ message: "Rating not found!" });
 	}
@@ -759,7 +759,7 @@ const getLikes = AsyncErrorHandler(async (req, res) => {
 
 	const wishlist = await Wishlist.findOne({ userId })
 		.populate({ path: "books", populate: { path: "genre" } })
-		.populate("userId");
+		.populate({path : "userId", select: "-password"});
 	if (!wishlist) {
 		return res.status(404).send({ message: "Wishlist not found!" });
 	}
