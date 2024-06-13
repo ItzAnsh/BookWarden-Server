@@ -136,6 +136,12 @@ const createBook = AsyncErrorHandler(async (req, res) => {
 		isbn10,
 		isbn13,
 	});
+
+	const newGenre = await Genre.findOne({
+		_id: new mongoose.Types.ObjectId(newBook.genre),
+	});
+
+	newBook.genre = newGenre;
 	await newBook.save();
 	res.json(newBook);
 });
