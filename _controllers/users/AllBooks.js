@@ -191,11 +191,23 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
 		return;
 	}
 
+  const fine = await Fine.find({ userId, status: {$in:["Pending", "Approved"]} });
+  if (fine.length > 0) {
+    res.status(400).json({ message: "User has a fine" });
+    return;
+  }
+
 	const library = await Library.findById(libraryId);
 	if (!library) {
 		res.status(404).json({ message: "Library not found" });
 		return;
 	}
+
+  const userIssues = await Issue.find({ userId, libraryId, status: { $in: ["issued", "renewed", "renew-requested", "renew-rejected", "renew-approved"] }  });
+  if (userIssues.length >= library.maxBooks) {
+    res.status(400).json({ message: "User has already issued " + library.maxBooks + " books" });
+    return;
+  }
 
 	const book = await Book.findById(bookId);
 	if (!book) {
@@ -207,6 +219,13 @@ const issueBookToUser = AsyncErrorHandler(async (req, res) => {
 		res.status(404).json({ message: "Book not found in library" });
 		return;
 	}
+
+  const issueRequest = await Issue.findOne({ userId, bookId, libraryId });
+  if (issueRequest) {
+    res.status(400).json({ message: "Book already issued" });
+    return;
+  }
+
 
 	if (location.availableQuantity <= 0) {
 		res.status(400).json({ message: "Book not available" });
