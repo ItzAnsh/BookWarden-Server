@@ -444,6 +444,9 @@ const getUserHome = AsyncErrorHandler(async (req, res) => {
 										foreignField: "_id",
 									},
 								},
+								{
+									$unwind: "$libraryId",
+								},
 							],
 						},
 					},
